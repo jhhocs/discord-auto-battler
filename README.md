@@ -30,6 +30,14 @@
 
 ## Deleting Commands
 
-1. Run `node delete-global-commands.js` to delete all global commands.
+1. Run `node delete-global-commands.js` to delete all global commands. You will be prompted in the terminal to confirm your action.
 
 ---
+
+# Resources
+
+- [GitHub Conventional Commit Messages](https://gist.github.com/qoomon/5dfcdf8eec66a051ecd85625518cfd13)
+- discord.js
+  - [Documentation](https://discord.js.org/)
+  - [Github](https://github.com/discordjs)
+- [Official Discord API](https://discord.com/developers/docs/intro)
