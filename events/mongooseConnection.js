@@ -9,7 +9,25 @@ module.exports = {
 	async execute() {
         mongoose.Promise = global.Promise;
         // Wait for database connection
-		await mongoose.connect(process.env.MONGODB_URI)
-		console.log(mongoose.connection.readyState);
+		await mongoose.connect(process.env.MONGODB_URI, {
+            keepAlive: true,
+        });
+        switch (mongoose.connection.readyState) {
+            case 0:
+                console.log("Disconnected from database");
+                break;
+            case 1:
+                console.log("Connected to database");
+                break;
+            case 2:
+                console.log("Connecting to database");
+                break;
+            case 3:
+                console.log("Disconnecting from database");
+                break;
+            default:
+                console.log("Unknown database state");
+                break;
+        }
 	},
 };
