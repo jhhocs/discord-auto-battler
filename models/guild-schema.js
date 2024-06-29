@@ -18,6 +18,6 @@ const guildSchema = new Schema({
         required: true,
     }
 });
-
+// Name of collection in database to add schema to
 const name = "guilds"
 module.exports = models[name] || model(name, guildSchema);

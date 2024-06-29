@@ -14,7 +14,11 @@ module.exports = {
 				players: [],
 				parties: [],
 			});
-			await guildData.save().catch(err => console);
+			await guildData.save().catch(err => {
+				console.log("An error occurred while adding guild to the database.")
+				console.error(err);
+				return;
+			});
 			console.log(`Added guild to database: ${guild.name} (id: ${guild.id})`);
 		}
 		else {
