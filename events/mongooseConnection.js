@@ -8,10 +8,11 @@ module.exports = {
 	once: true,
 	async execute() {
         mongoose.Promise = global.Promise;
+        
         // Wait for database connection
-		await mongoose.connect(process.env.MONGODB_URI, {
-            keepAlive: true,
-        });
+		await mongoose.connect(process.env.MONGODB_URI);
+
+        // Log database connection state
         switch (mongoose.connection.readyState) {
             case 0:
                 console.log("Disconnected from database");

@@ -19,5 +19,5 @@ const guildSchema = new Schema({
     }
 });
 
-const name = "guild"
+const name = "guilds"
 module.exports = models[name] || model(name, guildSchema);
