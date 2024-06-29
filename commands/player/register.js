@@ -8,7 +8,7 @@ const { SlashCommandBuilder } = require('@discordjs/builders');
  */
 
 module.exports = {
-    category: player,
+    category: "player",
     dev: true,
     cooldown: 1,
     data: new SlashCommandBuilder()
