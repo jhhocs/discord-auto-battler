@@ -15,6 +15,7 @@ module.exports = {
         .setName('register')
         .setDescription('Register a new player'),
     async execute(interaction) {
+        
         await interaction.reply('Register...');
     },
 };
