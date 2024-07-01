@@ -2,6 +2,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { Client, Collection, Events, GatewayIntentBits } = require('discord.js');
+// const mongoose = require('mongoose');
 
 require("dotenv").config();
 // let token = "";
@@ -40,6 +41,7 @@ const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'
 for (const file of eventFiles) {
 	const filePath = path.join(eventsPath, file);
 	const event = require(filePath);
+	console.log(`Event ${event.name} loaded`);
 	if (event.once) {
 		client.once(event.name, (...args) => event.execute(...args));
 	} else {
