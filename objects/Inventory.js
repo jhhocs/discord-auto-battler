@@ -1,9 +1,21 @@
+const defaultInventory = {
+    coins: 0,
+    items: [],
+    equippedItems: [],
+    inventorySize: 50,
+}
+
 class Inventory {
-    constructor() {
-        this.coins = 0;
-        this.items = [];
-        this.equiptedItems = [];
-        this.inventorySize = 50;
+
+    constructor(object) {
+        this.coins = object.coins;
+        this.items = object.items;
+        this.equippedItems = object.equippedItems;
+        this.inventorySize = object.inventorySize;
+    }
+
+    static defaultInventory() {
+        return defaultInventory;
     }
 
     // Coins
@@ -28,6 +40,15 @@ class Inventory {
     unequipItems(item) {
         this.items.push(item);
         this.equiptedItems = this.equiptedItems.filter(i => i !== item);
+    }
+
+    // Display Inventory
+    display() {
+        let inventory = "";
+        inventory += `Coins: ${this.coins}\n`;
+        inventory += `Equipped Items: ${this.equippedItems}\n`;
+        inventory += `Items: ${this.items}\n`;
+        return inventory;
     }
 
 }
