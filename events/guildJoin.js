@@ -12,7 +12,7 @@ module.exports = {
 				return;
 		}
 
-		let guildData = await guildSchema.findOne();
+		let guildData = await guildSchema.findOne({_id: guild.id});
 		// If guild does not exist in database, add it
 		if(!guildData) {
 			guildData = new guildSchema({

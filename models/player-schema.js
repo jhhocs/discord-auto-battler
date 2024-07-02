@@ -1,6 +1,5 @@
 const { Schema, model, models } = require('mongoose');
 
-const { Inventory, Stats } = require('../objects/Objects');
 
 const playerSchema = new Schema({
     _id: {
@@ -8,11 +7,11 @@ const playerSchema = new Schema({
         required: true,
     },
     inventory: {
-        type: Inventory,
+        type: Object,
         required: true,
     },
     stats: {
-        type: Stats,
+        type: Object,
         required: true,
     },
 });

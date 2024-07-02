@@ -1,4 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
+const playerSchema = require('../../models/player-schema');
 const { Inventory, Stats } = require('../../objects/Objects');
 const mongooseConnection = require('../../events/mongooseConnection');
 
@@ -22,7 +23,7 @@ module.exports = {
             return;
         }
 
-        let playerData = await playerSchema.findOne();
+        let playerData = await playerSchema.findOne({_id: interaction.user.id});
         // If player does not exist in database, add it
         if(!playerData) {
             playerData = new playerSchema({
