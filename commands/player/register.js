@@ -1,4 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
+const { Inventory, Stats } = require('../../objects/Objects');
 
 /*
  * Register a new user
