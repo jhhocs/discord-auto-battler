@@ -1,5 +1,5 @@
 # discord-roguelike
-
+---
 ## Getting Started
 
 1. Clone the project from github. `git clone https://github.com/jhhocs/discord-roguelike.git` (Make sure to install git)
@@ -27,7 +27,7 @@
 ### Global Commands
 
 1. Run `node deploy-global-commands.js` to deploy all commands (with the exception of dev commands with the `dev:true` tag or comands in the `commands/dev` directory) to all servers.
-
+---
 ## Deleting Commands
 
 1. Run `node delete-global-commands.js` to delete all global commands. You will be prompted in the terminal to confirm your action.
