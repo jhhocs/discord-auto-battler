@@ -6,6 +6,7 @@ require("dotenv").config();
 module.exports = {
 	name: Events.ClientReady,
 	once: true,
+    ready: false,
 	async execute() {
         mongoose.Promise = global.Promise;
         
@@ -25,6 +26,7 @@ module.exports = {
                     break;
                 case 1:
                     console.log("Connected to database");
+                    this.ready = true;
                     break;
                 case 2:
                     console.log("Connecting to database");

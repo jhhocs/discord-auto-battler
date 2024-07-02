@@ -1,10 +1,17 @@
 // Add guild to database if it does not yet exist. Guilds in the database should be stored using "guild-schema.js"
 const guildSchema = require("../models/guild-schema");
+const mongooseConnection = require("./mongooseConnection");
 
 module.exports = {
 	name: "guildCreate",
 	async execute(guild) {
         console.log(`New guild joined: ${guild.name} (id: ${guild.id}). This guild has ${guild.memberCount} members!`);
+
+		if(mongooseConnection.ready === false) {
+			console.log("No connection to database. Guild will not be added to database.");
+				return;
+		}
+
 		let guildData = await guildSchema.findOne();
 		// If guild does not exist in database, add it
 		if(!guildData) {
