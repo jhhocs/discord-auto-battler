@@ -1,4 +1,9 @@
-require("dotenv").config({path: '.env-mongo'});
+require("dotenv").config({path: '.env'});
+
+db.getSiblingDB('admin').auth(
+    process.env.ADMIN_USER,
+    process.env.ADMIN_PASSWORD
+);
 
 db.createUser(
     {

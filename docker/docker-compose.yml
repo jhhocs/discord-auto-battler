@@ -5,6 +5,7 @@ services:
         image: mongo:latest
         container_name: mongodb
         restart: always
+        # env_file: ".env.mongo"
         environment:
             MONGO_INITDB_ROOT_USERNAME: ${ADMIN_USER:?error} #<admin-user>
             MONGO_INITDB_ROOT_PASSWORD: ${ADMIN_PASSWORD:?error} #<admin-password>
@@ -12,4 +13,5 @@ services:
         ports:
             - 27017:27017
         volumes:
-            - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+            - .\mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+            # - mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
