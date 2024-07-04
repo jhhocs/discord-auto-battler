@@ -10,11 +10,11 @@ const defaultStats = {
 
 class Stats {
 
-    constructor(object) {
-        this.health = object.health;
-        this.attack = object.attack;
-        this.speed = object.speed;
-        this.luck = object.luck;
+    constructor(stats) {
+        this.health = stats.health;
+        this.attack = stats.attack;
+        this.speed = stats.speed;
+        this.luck = stats.luck;
     }
 
     static defaultStats() {

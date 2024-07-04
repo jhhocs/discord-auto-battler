@@ -7,11 +7,11 @@ const defaultInventory = {
 
 class Inventory {
 
-    constructor(object) {
-        this.coins = object.coins;
-        this.items = object.items;
-        this.equippedItems = object.equippedItems;
-        this.inventorySize = object.inventorySize;
+    constructor(inventory) {
+        this.coins = inventory.coins;
+        this.items = inventory.items;
+        this.equippedItems = inventory.equippedItems;
+        this.inventorySize = inventory.inventorySize;
     }
 
     static defaultInventory() {
