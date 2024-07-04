@@ -25,10 +25,10 @@ module.exports = {
         let playerData = await playerSchema.findById(interaction.user.id);
         if(!playerData) {
             console.log(`Player ${interaction.user.name} not found in database.`);
-            await interaction.reply({ content: "Please register with /register before using this command", empheral: true});
+            await interaction.reply({ content: "Please register with /register before using this command", ephemeral: true});
             return;
         }
         let stats = new Stats(playerData.stats);
-        await interaction.reply(stats.display());
+        await interaction.reply({ embeds: [stats.display()], ephemeral: true});
     },
 };

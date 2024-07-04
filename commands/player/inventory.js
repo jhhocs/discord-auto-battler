@@ -26,10 +26,10 @@ module.exports = {
         let playerData = await playerSchema.findById(interaction.user.id);
         if(!playerData) {
             console.log("Player not found in database.");
-            await interaction.reply({ content: "Please register with /register before using this command", empheral: true});
+            await interaction.reply({ content: "Please register with /register before using this command", ephemeral: true});
             return;
         }
         let inventory = new Inventory(playerData.inventory);
-        await interaction.reply(inventory.display());
+        await interaction.reply({ content: inventory.display(), ephemeral: true});
     },
 };

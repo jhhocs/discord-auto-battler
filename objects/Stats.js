@@ -1,3 +1,5 @@
+const { EmbedBuilder } = require("discord.js");
+
 // Can add more stats later if needed
 const defaultStats = {
     health: 100,
@@ -25,7 +27,11 @@ class Stats {
         stats += `Attack: ${this.attack}\n`;
         stats += `Speed: ${this.speed}\n`;
         stats += `Luck: ${this.luck}\n`;
-        return stats
+        const embed = new EmbedBuilder()
+            .setTitle("Stats")
+            .setColor(0x0099FF)
+            .setDescription(stats);
+        return embed;
     }
 }
 
