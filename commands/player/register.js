@@ -1,8 +1,9 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const playerSchema = require('../../models/player-schema');
-const guildSchema = require("../../models/guild-schema");
+const playerSchema = require('../../schemas/player-schema');
+const guildSchema = require("../../schemas/guild-schema");
 const { Inventory, Stats } = require('../../objects/Objects');
 const mongooseConnection = require('../../events/mongooseConnection');
+const { EmbedType } = require('discord.js');
 
 /*
  * Register a new user
@@ -13,6 +14,8 @@ const mongooseConnection = require('../../events/mongooseConnection');
 
 
 // TODO: Users have 1 account per guild
+
+// Probably want to change this to a react event. Player registers by reacting to a message
 
 module.exports = {
     category: "player",
@@ -42,26 +45,27 @@ module.exports = {
             // Check if guild is registered with the database
             if(!guildData) {
                 console.log("Guild not found. Please register the guild with /initialize");
-                await interaction.reply("Guild not found. Please register the guild with /initialize");
+                await interaction.reply({content: "Guild not found. Please register the guild with /initialize", ephemeral: true});
                 return;
             }
             // Add player to database
             playerData = new playerSchema({
                 _id: interaction.user.id,
-                inventory: new Inventory(),
-                stats: new Stats(),
+                guildId: interaction.guild.id,
+                inventory: new Inventory(Inventory.defaultInventory()),
+                stats: new Stats(Stats.defaultStats()),
             });
             await playerData.save().catch(err => {
                 console.log("An error occurred while adding player to the database.")
                 console.error(err);
                 return;
             });
-            await interaction.reply("You have successfully registered.");
+            await interaction.reply({content: "You have successfully registered.", ephemeral: true});
             console.log(`Added player to database: ${interaction.user.username} (id: ${interaction.user.id}) (guild: ${interaction.guild.name})`);
 
         }
         else {
-            await interaction.reply("You have already registered.");
+            await interaction.reply({content: "You have already registered.", ephemeral: true});
             console.log(`Player already exists in database: ${interaction.user.username} (id: ${interaction.user.id})`);
         }
     },

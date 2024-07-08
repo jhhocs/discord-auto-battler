@@ -1,5 +1,5 @@
 // Add guild to database if it does not yet exist. Guilds in the database should be stored using "guild-schema.js"
-const guildSchema = require("../models/guild-schema");
+const guildSchema = require("../schemas/guild-schema");
 const mongooseConnection = require("./mongooseConnection");
 
 module.exports = {

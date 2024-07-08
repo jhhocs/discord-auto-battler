@@ -6,6 +6,10 @@ const playerSchema = new Schema({
         type: String,
         required: true,
     },
+    guildId: {
+        type: String,
+        required: true,
+    },
     inventory: {
         type: Object,
         required: true,

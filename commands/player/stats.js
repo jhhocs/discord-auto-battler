@@ -1,11 +1,10 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { Inventory } = require('../../objects/Objects');
+const { Stats } = require('../../objects/Objects');
 const playerSchema = require('../../schemas/player-schema');
 const mongooseConnection = require('../../events/mongooseConnection');
 
 /*
- * Show player their inventory
- * Display gold / currency and items
+ * Display player stats
  */
 
 module.exports = {
@@ -13,8 +12,8 @@ module.exports = {
     dev: true,
     cooldown: 1,
     data: new SlashCommandBuilder()
-        .setName('inventory')
-        .setDescription('Shows your inventory.'),
+        .setName('stats')
+        .setDescription('View your stats.'),
     async execute(interaction) {
         // Check for database connection
         if(mongooseConnection.ready === false) {
@@ -25,11 +24,11 @@ module.exports = {
         // Find player in database
         let playerData = await playerSchema.findById(interaction.user.id);
         if(!playerData) {
-            console.log("Player not found in database.");
+            console.log(`Player ${interaction.user.name} not found in database.`);
             await interaction.reply({ content: "Please register with /register before using this command", ephemeral: true});
             return;
         }
-        let inventory = new Inventory(playerData.inventory);
-        await interaction.reply({ content: inventory.display(), ephemeral: true});
+        let stats = new Stats(playerData.stats);
+        await interaction.reply({ embeds: [stats.display()], ephemeral: true});
     },
 };
