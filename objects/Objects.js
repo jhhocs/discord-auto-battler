@@ -3,4 +3,5 @@ module.exports = {
     Stats: require('./Stats'),
     Entity: require('./Entity'),
     Player: require('./Player'),
+    Party: require('./Party'),
 }
