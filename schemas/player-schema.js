@@ -18,7 +18,7 @@ const playerSchema = new Schema({
         type: Object,
         required: true,
     },
-    party: {
+    partyId: {
         type: String,
         required: true,
     }

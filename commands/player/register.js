@@ -57,7 +57,7 @@ module.exports = {
                 guildId: interaction.guild.id,
                 inventory: new Inventory(Inventory.defaultInventory()),
                 stats: new Stats(Stats.defaultStats()),
-                party: interaction.user.id,
+                partyId: interaction.user.id,
             });
             await playerData.save().catch(err => {
                 console.log("An error occurred while adding player to the database.")
