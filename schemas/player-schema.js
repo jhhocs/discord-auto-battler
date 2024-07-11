@@ -10,6 +10,10 @@ const playerSchema = new Schema({
         type: String,
         required: true,
     },
+    username: {
+        type: String,
+        required: true,
+    },
     inventory: {
         type: Object,
         required: true,
@@ -20,7 +24,7 @@ const playerSchema = new Schema({
     },
     partyId: {
         type: String,
-        required: true,
+        required: false,
     }
 });
 

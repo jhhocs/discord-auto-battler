@@ -1,5 +1,6 @@
-const { ActionRowBuilder, ButtonBuilder, ButtonStyle, SlashCommandBuilder } = require('discord.js');
+const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, SlashCommandBuilder } = require('discord.js');
 const mongooseConnection = require('../../events/mongooseConnection');
+const mongoose = require('mongoose');
 const partySchema = require('../../schemas/party-schema');
 const playerSchema = require('../../schemas/player-schema');
 
@@ -49,17 +50,38 @@ module.exports = {
             return;
         }
 
+        let party = await partySchema.findOne({partyId: playerData.partyId});
+
         switch (interaction.options.getSubcommand()) {
             case 'view':
+
+                // Check if player is in a party
+                if(playerData.partyId === "") {
+                    await interaction.reply({ content: "You are currently not in a party", ephemeral: true});
+                    return;
+                }
+
+                let displayedPartyData = "";
+                const leaderData = await playerSchema.findOne({userId: party.leader, guildId: interaction.guild.id});
+
+                displayedPartyData += `**${leaderData.username}**\n`;
                 
-                await interaction.reply({ content: "Viewing party", ephemeral: true});
+                for(let member of party.members) {
+                    const memberData = await playerSchema.findOne({userId: member, guildId: interaction.guild.id});
+                    displayedPartyData += `**${memberData.username}**\n`;
+                }
+
+                const embed = new EmbedBuilder()
+                    .setTitle("Party")
+                    .setColor(0x0099FF)
+                    .setDescription(displayedPartyData);
+
+                await interaction.reply({ embeds: [embed], ephemeral: true});
                 break;
             case 'invite':
 
-                let party = await partySchema.findOne({partyId: playerData.partyId});
-
                 // Check if party is full
-                if(isFull(party.members.length)) {
+                if(party && isFull(party.members.length)) {
                     await interaction.reply({ content: "This party is already full!"});
                     return;
                 }
@@ -67,8 +89,15 @@ module.exports = {
                 const user = interaction.options.getUser('user-to-invite');
                 if(!user) return;
 
+                const playerData2 = await playerSchema.findOne({userId: user.id, guildId: interaction.guild.id});
+                if(!playerData2) {
+                    console.log(`/party: Player ${user.name} not found in database.`);
+                    await interaction.reply({ content: `${user.username} is not registered`, ephemeral: true});
+                    return;
+                }
+
                 // Check if user is already in your party
-                if(party.members.includes(user.id)) {
+                if(party?.members.includes(user.id)) {
                     await interaction.reply({ content: `${user.username} is already in your party!`, ephemeral: true});
                     return;
                 }
@@ -93,24 +122,45 @@ module.exports = {
                     const userResponse = await response.awaitMessageComponent({ filter: collectorFilter, time: 60_000 });
                     switch (userResponse.customId) {
                         case 'accept':
-                            // Check if user is already in this party
-                            if(party.members.includes(user.id)) {
-                                await interaction.editReply({ content: `${user.toString()} you have already joined this party!`, components: []});
-                                return;
-                            }
+                            
+                            if(party) {
+                                // Check if user is already in this party
+                                if(party.members.includes(user.id)) {
+                                    await interaction.editReply({ content: `${user.toString()} you have already joined this party!`, components: []});
+                                    return;
+                                }
 
-                            // Check if party is full
-                            party = await partySchema.findOne({partyId: playerData.partyId});
-                            if(isFull(party.members.length)) {
-                                await interaction.editReply({ content: "This party is full!", components: []});
-                                return;
+                                // Check if party is full
+                                party = await partySchema.findOne({partyId: playerData.partyId}); // Update party in case it was changed
+                                if(isFull(party.members.length)) {
+                                    await interaction.editReply({ content: "This party is full!", components: []});
+                                    return;
+                                }
+                                // Check if user is already in a party
+                                const party2 = await partySchema.findOne({partyId: playerData2.partyId});
+                                if(party2.members.length > 1) {
+                                    await interaction.editReply({ content: `${user.toString()} You are already in a party!`, components: []});
+                                    return;
+                                }
+
+                                playerData2.partyId = party.partyId;
                             }
-                            // Check if user is already in a party
-                            const playerData2 = await playerSchema.findOne({userId: user.id, guildId: interaction.guild.id});
-                            const party2 = await partySchema.findOne({partyId: playerData2.partyId});
-                            if(party2.members.length > 1) {
-                                await interaction.editReply({ content: `${user.toString()} You are already in a party!`, components: []});
-                                return;
+                            else {
+                                let id = new mongoose.Types.ObjectId();
+                                party = new partySchema({
+                                    partyId: id,
+                                    guildId: interaction.guild.id,
+                                    leader: playerData.userId,
+                                    members: [],
+                                });
+                                playerData.partyId = id;
+                                playerData2.partyId = id;
+
+                                await playerData.save().catch(err => {
+                                    console.log(`An error occurred while updating ${playerData.username}'s partyId. User's _id: ${playerData._id}`);
+                                    console.error(err);
+                                    return;
+                                });
                             }
 
                             // Add user to party
@@ -122,7 +172,6 @@ module.exports = {
                             });
 
                             // Update user's partyId
-                            playerData2.partyId = party.partyId;
                             await playerData2.save().catch(err => {
                                 console.log(`An error occurred while updating ${user.username}'s partyId. User's _id: ${playerData2._id}`);
                                 console.error(err);
@@ -130,12 +179,12 @@ module.exports = {
                             });
 
                             // Remove user from their pervious party
-                            party2.members = []; // User must be in a party of 1 to join a new party. We can just set the array to empty
-                            await party2.save().catch(err => {
-                                console.log(`An error occurred while removing ${user.username} from their party. partyId: ${party2.partyId}`);
-                                console.error(err);
-                                return;
-                            });
+                            // party2.members = []; // User must be in a party of 1 to join a new party. We can just set the array to empty
+                            // await party2.save().catch(err => {
+                            //     console.log(`An error occurred while removing ${user.username} from their party. partyId: ${party2.partyId}`);
+                            //     console.error(err);
+                            //     return;
+                            // });
 
                             await interaction.editReply({ content: `${user.toString()} has joined the party`, components: [] });
                             break;
@@ -145,12 +194,57 @@ module.exports = {
                     }
                 }
                 catch (error) {
-                    // console.error(error);
+                    console.error(error);
                     await interaction.editReply({ content: 'Party Invite has timed out!', components: [] });
                 }
 
                 break;
             case 'leave':
+                // Check if player is in a party
+                if(playerData.partyId === "") {
+                    await interaction.reply({ content: "You are currently not in a party", ephemeral: true});
+                    return;
+                }
+
+                if(party.members.length === 0) {
+                    // Delete party from database
+                    await partySchema.deleteOne({partyId: party.partyId}).catch(err => {
+                        console.log(`An error occurred while deleting party. partyId: ${playerData.partyId}`);
+                        console.error(err);
+                        return;
+                    });
+                }
+
+                // Remove player from party
+                else if(party.leader === playerData.userId) {
+                    party.leader = party.members.shift();
+                    // Update party in database
+                    await party.save().catch(err => {
+                        console.log(`An error occurred while removing ${playerData.username} from the party. partyId: ${party.partyId}`);
+                        console.error(err);
+                        return;
+                    });
+
+                }
+                else {
+                    party.members = party.members.filter((member) => member !== playerData.userId);
+                    // Update party in database
+                    await party.save().catch(err => {
+                        console.log(`An error occurred while removing ${playerData.username} from the party. partyId: ${party.partyId}`);
+                        console.error(err);
+                        return;
+                    });
+
+                }
+
+                // Update player's partyId in database
+                playerData.partyId = "";
+                await playerData.save().catch(err => {
+                    console.log(`An error occurred while updating ${playerData.username}'s partyId. User's _id: ${playerData._id}`);
+                    console.error(err);
+                    return;
+                });
+
                 await interaction.reply({ content: "Leaving party", ephemeral: true});
                 break;
             case 'kick':
@@ -164,7 +258,7 @@ module.exports = {
 };
 
 function isFull(numMembers) {
-    return numMembers === 4;
+    return numMembers === 2;
 }
 
 

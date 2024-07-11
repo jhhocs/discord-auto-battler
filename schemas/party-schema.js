@@ -10,10 +10,14 @@ const partySchema = new Schema({
         type: String,
         required: true,
     },
+    leader: {
+        type: String,
+        required: true,
+    },
     members: {
         type: Array,
         required: true,
-        maxItems: 4,
+        maxItems: 3,
     },
 });
 

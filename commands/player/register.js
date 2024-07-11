@@ -55,9 +55,10 @@ module.exports = {
             playerData = new playerSchema({
                 userId: interaction.user.id,
                 guildId: interaction.guild.id,
+                username: interaction.user.username,
                 inventory: new Inventory(Inventory.defaultInventory()),
                 stats: new Stats(Stats.defaultStats()),
-                partyId: interaction.user.id,
+                partyId: "",
             });
             await playerData.save().catch(err => {
                 console.log("An error occurred while adding player to the database.")
@@ -65,16 +66,16 @@ module.exports = {
                 return;
             });
             // Add party to database
-            let partyData = new partySchema({
-                partyId: interaction.user.id,
-                guildId: interaction.guild.id,
-                members: [interaction.user.id],
-            })
-            await partyData.save().catch(err => {
-                console.log("An error occurred while adding the party to the database.")
-                console.error(err);
-                return;
-            });
+            // let partyData = new partySchema({
+            //     partyId: interaction.user.id,
+            //     guildId: interaction.guild.id,
+            //     members: [interaction.user.id],
+            // })
+            // await partyData.save().catch(err => {
+            //     console.log("An error occurred while adding the party to the database.")
+            //     console.error(err);
+            //     return;
+            // });
 
             await interaction.reply({content: "You have successfully registered.", ephemeral: true});
             console.log(`Added player to database: ${interaction.user.username} (id: ${interaction.user.id}) (guild: ${interaction.guild.name})`);
