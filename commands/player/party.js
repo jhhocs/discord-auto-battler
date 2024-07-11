@@ -245,9 +245,61 @@ module.exports = {
                     return;
                 });
 
-                await interaction.reply({ content: "Leaving party", ephemeral: true});
+                await interaction.reply({ content: "Leaving party!", ephemeral: true});
                 break;
             case 'kick':
+                // Check if player is in a party
+                if(playerData.partyId === "") {
+                    await interaction.reply({ content: "You are currently not in a party!", ephemeral: true});
+                    return;
+                }
+
+                // Check if player is the leader
+                if(party.leader !== playerData.userId) {
+                    await interaction.reply({ content: "You must be the party leader to use this command!", ephemeral: true});
+                    return;
+                }
+
+                const userToKick = interaction.options.getUser('user-to-kick');
+
+                // Check if you are trying to kick yourself
+                if(userToKick.id === playerData.userId) {
+                    await interaction.reply({ content: "You cannot kick yourself from your party", ephemeral: true});
+                    return;
+                }
+
+                // Check if user is in the party
+                if(!party.members.includes(userToKick.id)) {
+                    await interaction.reply({ content: `${userToKick.username} is not in your party!`, ephemeral: true});
+                    return;
+                }
+
+                // Remove user from party
+                party.members = party.members.filter((member) => member !== userToKick.id);
+
+                // Update party in database
+                await party.save().catch(err => {
+                    console.log(`An error occurred while removing ${userToKick.username} from the party. partyId: ${party.partyId}`);
+                    console.error(err);
+                    return;
+                });
+
+                // Update user's partyId in database
+
+                await playerSchema.findOneAndUpdate(
+                    {
+                        userId: userToKick.id,
+                        guildId: party.guildId,
+                    },
+                    {
+                        partyId: "",
+                    }
+                ).catch(err => {
+                    console.log(`An error occurred while updating ${userToKick.username}'s partyId. User's _id: ${playerData2._id}`);
+                    console.error(err);
+                    return;
+                });
+
                 await interaction.reply({ content: "Kicking user", ephemeral: true});
                 break;
             default:
