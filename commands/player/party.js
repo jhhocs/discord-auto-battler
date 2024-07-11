@@ -64,7 +64,7 @@ module.exports = {
                 let displayedPartyData = "";
                 const leaderData = await playerSchema.findOne({userId: party.leader, guildId: interaction.guild.id});
 
-                displayedPartyData += `**${leaderData.username}**\n`;
+                displayedPartyData += `**⭐ ${leaderData.username}**\n`;
                 
                 for(let member of party.members) {
                     const memberData = await playerSchema.findOne({userId: member, guildId: interaction.guild.id});
@@ -137,8 +137,8 @@ module.exports = {
                                     return;
                                 }
                                 // Check if user is already in a party
-                                const party2 = await partySchema.findOne({partyId: playerData2.partyId});
-                                if(party2.members.length > 1) {
+                                // const party2 = await partySchema.findOne({partyId: playerData2.partyId});
+                                if(playerData2.partyId !== "") {
                                     await interaction.editReply({ content: `${user.toString()} You are already in a party!`, components: []});
                                     return;
                                 }
@@ -177,14 +177,6 @@ module.exports = {
                                 console.error(err);
                                 return;
                             });
-
-                            // Remove user from their pervious party
-                            // party2.members = []; // User must be in a party of 1 to join a new party. We can just set the array to empty
-                            // await party2.save().catch(err => {
-                            //     console.log(`An error occurred while removing ${user.username} from their party. partyId: ${party2.partyId}`);
-                            //     console.error(err);
-                            //     return;
-                            // });
 
                             await interaction.editReply({ content: `${user.toString()} has joined the party`, components: [] });
                             break;
@@ -285,7 +277,6 @@ module.exports = {
                 });
 
                 // Update user's partyId in database
-
                 await playerSchema.findOneAndUpdate(
                     {
                         userId: userToKick.id,
@@ -300,17 +291,16 @@ module.exports = {
                     return;
                 });
 
-                await interaction.reply({ content: "Kicking user", ephemeral: true});
+                await interaction.reply({ content: `${userToKick.username} has been kicked from your party`, ephemeral: true});
                 break;
             default:
-                await interaction.reply({ content: "wtf", ephemeral: true});
-                break;
+                return;
         }
     },
 };
 
 function isFull(numMembers) {
-    return numMembers === 2;
+    return numMembers === 3;
 }
 
 
