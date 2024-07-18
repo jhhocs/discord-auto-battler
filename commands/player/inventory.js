@@ -23,7 +23,7 @@ module.exports = {
         }
 
         // Find player in database
-        let playerData = await playerSchema.findById(interaction.user.id);
+        let playerData = await playerSchema.findOne({userId: interaction.user.id, guildId: interaction.guild.id});
         if(!playerData) {
             console.log("Player not found in database.");
             await interaction.reply({ content: "Please register with /register before using this command", ephemeral: true});

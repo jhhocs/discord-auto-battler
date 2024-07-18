@@ -2,11 +2,15 @@ const { Schema, model, models } = require('mongoose');
 
 
 const playerSchema = new Schema({
-    _id: {
+    userId: {
         type: String,
         required: true,
     },
     guildId: {
+        type: String,
+        required: true,
+    },
+    username: {
         type: String,
         required: true,
     },
@@ -18,6 +22,10 @@ const playerSchema = new Schema({
         type: Object,
         required: true,
     },
+    partyId: {
+        type: String,
+        required: false,
+    }
 });
 
 const name = "players"
