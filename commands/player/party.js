@@ -1,8 +1,11 @@
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, SlashCommandBuilder } = require('discord.js');
 const mongooseConnection = require('../../events/mongooseConnection');
 const mongoose = require('mongoose');
-const partySchema = require('../../schemas/party-schema');
-const playerSchema = require('../../schemas/player-schema');
+const { PartySchema, PlayerSchema} = require('../../schemas/Schemas');
+
+
+// May need to prevent party changes once a climb has started. May need to prevent users from being locked into parties if someone abandons / goes MIA
+// Add a way to change party leader?
 
 module.exports = {
     category: 'player',
@@ -10,7 +13,7 @@ module.exports = {
     cooldown: 1,
     data: new SlashCommandBuilder()
 	.setName('party')
-	.setDescription('Get info about a user or a server!')
+	.setDescription('Manage your party')
 	.addSubcommand(subcommand =>
 		subcommand
 			.setName('view')
@@ -39,18 +42,18 @@ module.exports = {
     async execute(interaction) {
         // Check for database connection
         if(mongooseConnection.ready === false) {
-            console.log("No connection to database.");
+            console.log("No connection to database. (party.js)");
             return;
         }
 
-        const playerData = await playerSchema.findOne({userId: interaction.user.id, guildId: interaction.guild.id});
+        const playerData = await PlayerSchema.findOne({userId: interaction.user.id, guildId: interaction.guild.id});
         if(!playerData) {
             console.log(`/party: Player ${interaction.user.name} not found in database.`);
             await interaction.reply({ content: "Please register with /register before using this command", ephemeral: true});
             return;
         }
 
-        let party = await partySchema.findOne({partyId: playerData.partyId});
+        let party = await PartySchema.findOne({partyId: playerData.partyId});
 
         switch (interaction.options.getSubcommand()) {
             case 'view':
@@ -62,12 +65,12 @@ module.exports = {
                 }
 
                 let displayedPartyData = "";
-                const leaderData = await playerSchema.findOne({userId: party.leader, guildId: interaction.guild.id});
+                const leaderData = await PlayerSchema.findOne({userId: party.leader, guildId: interaction.guild.id});
 
-                displayedPartyData += `**⭐ ${leaderData.username}**\n`;
+                displayedPartyData += `**👑 ${leaderData.username}**\n`;
                 
                 for(let member of party.members) {
-                    const memberData = await playerSchema.findOne({userId: member, guildId: interaction.guild.id});
+                    const memberData = await PlayerSchema.findOne({userId: member, guildId: interaction.guild.id});
                     displayedPartyData += `**${memberData.username}**\n`;
                 }
 
@@ -80,6 +83,12 @@ module.exports = {
                 break;
             case 'invite':
 
+                // Check if party is in a climb
+                if(party.climbId !== "") {
+                    await interaction.reply({ content: "You cannot invite players while in a climb", ephemeral: true});
+                    return;
+                }
+
                 // Check if party is full
                 if(party && isFull(party.members.length)) {
                     await interaction.reply({ content: "This party is already full!"});
@@ -89,7 +98,7 @@ module.exports = {
                 const user = interaction.options.getUser('user-to-invite');
                 if(!user) return;
 
-                const playerData2 = await playerSchema.findOne({userId: user.id, guildId: interaction.guild.id});
+                const playerData2 = await PlayerSchema.findOne({userId: user.id, guildId: interaction.guild.id});
                 if(!playerData2) {
                     console.log(`/party: Player ${user.name} not found in database.`);
                     await interaction.reply({ content: `${user.username} is not registered`, ephemeral: true});
@@ -131,7 +140,7 @@ module.exports = {
                                 }
 
                                 // Check if party is full
-                                party = await partySchema.findOne({partyId: playerData.partyId}); // Update party in case it was changed
+                                party = await PartySchema.findOne({partyId: playerData.partyId}); // Update party in case it was changed
                                 if(isFull(party.members.length)) {
                                     await interaction.editReply({ content: "This party is full!", components: []});
                                     return;
@@ -147,9 +156,10 @@ module.exports = {
                             }
                             else {
                                 let id = new mongoose.Types.ObjectId();
-                                party = new partySchema({
+                                party = new PartySchema({
                                     partyId: id,
                                     guildId: interaction.guild.id,
+                                    climbId: "",
                                     leader: playerData.userId,
                                     members: [],
                                 });
@@ -192,15 +202,22 @@ module.exports = {
 
                 break;
             case 'leave':
+
                 // Check if player is in a party
                 if(playerData.partyId === "") {
                     await interaction.reply({ content: "You are currently not in a party", ephemeral: true});
                     return;
                 }
 
+                // Prevent player from leaving party while in a climb
+                if(party.climbId !== "") {
+                    await interaction.reply({ content: "You cannot leave a party while in a climb", ephemeral: true});
+                    return;
+                }
+
                 if(party.members.length === 0) {
                     // Delete party from database
-                    await partySchema.deleteOne({partyId: party.partyId}).catch(err => {
+                    await PartySchema.deleteOne({partyId: party.partyId}).catch(err => {
                         console.log(`An error occurred while deleting party. partyId: ${playerData.partyId}`);
                         console.error(err);
                         return;
@@ -240,6 +257,13 @@ module.exports = {
                 await interaction.reply({ content: "Leaving party!", ephemeral: true});
                 break;
             case 'kick':
+
+                // Prevent player from kicking while in a climb
+                if(party.climbId !== "") {
+                    await interaction.reply({ content: "You cannot kick players while in a climb", ephemeral: true});
+                    return;
+                }
+
                 // Check if player is in a party
                 if(playerData.partyId === "") {
                     await interaction.reply({ content: "You are currently not in a party!", ephemeral: true});
@@ -277,7 +301,7 @@ module.exports = {
                 });
 
                 // Update user's partyId in database
-                await playerSchema.findOneAndUpdate(
+                await PlayerSchema.findOneAndUpdate(
                     {
                         userId: userToKick.id,
                         guildId: party.guildId,
