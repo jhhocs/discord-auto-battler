@@ -1,7 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const playerSchema = require('../../schemas/player-schema');
-const partySchema = require('../../schemas/party-schema');
-const guildSchema = require("../../schemas/guild-schema");
+const { PlayerSchema, PartySchema, GuildSchema } = require('../../schemas/Schemas');
 const { Inventory, Stats } = require('../../objects/Objects');
 const mongooseConnection = require('../../events/mongooseConnection');
 const { EmbedType } = require('discord.js');
@@ -28,14 +26,14 @@ module.exports = {
     async execute(interaction) {
         // Check for database connection
         if(mongooseConnection.ready === false) {
-            console.log("No connection to database. Player will not be added to database.");
+            console.log("No connection to database. (register.js)");
             return;
         }
 
-        let playerData = await playerSchema.findOne({userId: interaction.user.id, guildId: interaction.guild.id});
+        let playerData = await PlayerSchema.findOne({userId: interaction.user.id, guildId: interaction.guild.id});
         // If player does not exist in database, add it
         if(!playerData) {
-            let guildData = await guildSchema.findOneAndUpdate(
+            let guildData = await GuildSchema.findOneAndUpdate(
                 {
                     _id: interaction.guild.id
                 },
@@ -52,7 +50,7 @@ module.exports = {
             }
 
             // Add player to database
-            playerData = new playerSchema({
+            playerData = new PlayerSchema({
                 userId: interaction.user.id,
                 guildId: interaction.guild.id,
                 username: interaction.user.username,
@@ -66,7 +64,7 @@ module.exports = {
                 return;
             });
             // Add party to database
-            // let partyData = new partySchema({
+            // let partyData = new PartySchema({
             //     partyId: interaction.user.id,
             //     guildId: interaction.guild.id,
             //     members: [interaction.user.id],

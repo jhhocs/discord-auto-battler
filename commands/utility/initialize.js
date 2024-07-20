@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const guildSchema = require("../../schemas/guild-schema");
+const { GuildSchema } = require("../../schemas/Schemas");
 const mongooseConnection = require("../../events/mongooseConnection");
 
 module.exports = {
@@ -16,10 +16,10 @@ module.exports = {
 				return;
 		}
 
-		let guildData = await guildSchema.findOne({_id: interaction.guild.id});
+		let guildData = await GuildSchema.findOne({_id: interaction.guild.id});
 		// If guild does not exist in database, add it
 		if(!guildData) {
-			guildData = new guildSchema({
+			guildData = new GuildSchema({
 				_id: interaction.guild.id,
 				shop: [],
 				players: [],

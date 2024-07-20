@@ -1,7 +1,7 @@
 const { Schema, model, models } = require('mongoose');
 
 
-const playerSchema = new Schema({
+const PlayerSchema = new Schema({
     userId: {
         type: String,
         required: true,
@@ -25,8 +25,9 @@ const playerSchema = new Schema({
     partyId: {
         type: String,
         required: false,
-    }
+    },
+    
 });
 
 const name = "players"
-module.exports = models[name] || model(name, playerSchema);
+module.exports = models[name] || model(name, PlayerSchema);
