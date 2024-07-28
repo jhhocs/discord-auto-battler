@@ -1,9 +1,9 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { Inventory } = require('../../objects/Objects');
 const { PlayerSchema, PartySchema, ClimbSchema } = require('../../schemas/Schemas');
 const mongoose = require('mongoose');
 const mongooseConnection = require('../../events/mongooseConnection');
 const { ChannelType } = require('discord.js');
+const { startFloor } = require('../../game-logic/climbManager');
 
 // Implement system to ask party members to accept?
 // Implement system to allow party members to /ready
@@ -13,7 +13,7 @@ const { ChannelType } = require('discord.js');
 module.exports = {
     category: 'player',
     dev: true,
-    cooldown: 1,
+    cooldown: 0,
     data: new SlashCommandBuilder()
         .setName('climb')
         .setDescription('Manage your climb')
@@ -26,12 +26,23 @@ module.exports = {
             subcommand
                 .setName('forfeit')
                 .setDescription('End your climb early.')
+        )
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('ascend')
+                .setDescription('Procede to the next floor.')
         ),
 
     async execute(interaction) {
         // Check for database connection
         if(mongooseConnection.ready === false) {
             console.log("No connection to database. (climb.js)");
+            return;
+        }
+
+        // Check if command is used in a climb channel
+        if(interaction.channel.parent.name.toLowerCase() !== "climbs") {
+            await interaction.reply({ content: "This command can not be used in this channel", ephemeral: true });
             return;
         }
 
@@ -52,7 +63,7 @@ module.exports = {
         let partyData = await PartySchema.findOne({partyId: playerData.partyId});
         let climbData;
         if(partyData && partyData?.climbId !== "") {
-            climbData = await ClimbSchema.findOne({climbId: partyData.climbId});
+            climbData = await ClimbSchema.findOne({_id: partyData.climbId});
         }
 
         switch (interaction.options.getSubcommand()) {
@@ -76,6 +87,7 @@ module.exports = {
                         _id: id,
                         partyId: id2,
                         currentFloor: 0,
+                        inBattle: false,
                     });
 
                     // Update player's partyId
@@ -95,6 +107,7 @@ module.exports = {
                     return;
                 }
                 else {
+                    let id = new mongoose.Types.ObjectId();
                     partyData.climbId = id;
 
                     // Generate new climb
@@ -102,20 +115,15 @@ module.exports = {
                         _id: id,
                         partyId: partyData.partyId,
                         currentFloor: 0,
+                        inBattle: false,
                     });
                 }
-
-                // Save party data
-                await partyData.save().catch(err => {
-                    console.log(`An error occurred while saving ${interaction.user.username}'s party data. (climb.js)`);
-                    console.error(err);
-                    return;
-                });
 
                 // Create new channel for climb
                 try {
                     let partyLeader = await PlayerSchema.findOne({userId: partyData.leader, guildId: interaction.guild.id});
-                    let channel = await interaction.guild.channels.create({
+                    // let channel = await interaction.guild.channels.create({
+                    let channel = await interaction.channel.parent.children.create({
                         name: `${partyLeader.username}s Climb`,
                         type: ChannelType.GuildText,
                     })
@@ -128,6 +136,13 @@ module.exports = {
                     console.error(err);
                     return;
                 }
+
+                // Save party data
+                await partyData.save().catch(err => {
+                    console.log(`An error occurred while saving ${interaction.user.username}'s party data. (climb.js)`);
+                    console.error(err);
+                    return;
+                });
 
                 // Save climb data
                 await climbData.save().catch(err => {
@@ -153,7 +168,35 @@ module.exports = {
 
                 await interaction.reply({ content: "You have forfeited the climb.", ephemeral: true });
                 break;
-            default:
+            case 'ascend':
+                // Check if player is in a climb
+                if(playerData.partyId === "" || partyData && partyData?.climbId === "") {
+                    await interaction.reply({ content: "You are not in a climb!", ephemeral: true });
+                    return;
+                }
+
+                // Check if party is in battle
+                if(climbData.inBattle === true) {
+                    await interaction.reply({ content: "You already have an active floor", ephemeral: true });
+                    return;
+                }
+
+                // Increment party's current floor
+                climbData.currentFloor++;
+                // climbData.inBattle = true;
+
+                startFloor(climbData, interaction.channel);
+
+                // Save climb data to database
+                await climbData.save().catch(err => {
+                    console.log(`An error occurred while saving ${interaction.user.username}'s climb data. (climb.js)`);
+                    console.error(err);
+                    return;
+                });
+
+                await interaction.reply({ content: `You have ascended to floor ${climbData.currentFloor}.`, ephemeral: true });
+                break;
+                default:
                 break;
         }
     },

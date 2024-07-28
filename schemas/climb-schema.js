@@ -13,6 +13,10 @@ const ClimbSchema = new Schema({
         type: Number,
         required: true,
     },
+    inBattle: {
+        type: Boolean,
+        required: true,
+    },
     channel: {
         type: String,
         required: true,

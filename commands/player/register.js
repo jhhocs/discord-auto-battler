@@ -1,8 +1,8 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { PlayerSchema, PartySchema, GuildSchema } = require('../../schemas/Schemas');
+const { PlayerSchema, GuildSchema } = require('../../schemas/Schemas');
 const { Inventory, Stats } = require('../../objects/Objects');
 const mongooseConnection = require('../../events/mongooseConnection');
-const { EmbedType } = require('discord.js');
+// const { EmbedType } = require('discord.js');
 
 /*
  * Register a new user
@@ -10,9 +10,6 @@ const { EmbedType } = require('discord.js');
  * All user's discord ID to database. (Add user to system)
  * Let user know if they have successfully registered. 
  */
-
-
-// TODO: Users have 1 account per guild
 
 // Probably want to change this to a react event. Player registers by reacting to a message
 
@@ -38,8 +35,7 @@ module.exports = {
                     _id: interaction.guild.id
                 },
                 {
-                    // 
-                    $addToSet: { players: interaction.user.id, parties: interaction.user.id },
+                    $addToSet: { players: interaction.user.id },
                 }
             );
             // Check if guild is registered with the database
@@ -63,17 +59,6 @@ module.exports = {
                 console.error(err);
                 return;
             });
-            // Add party to database
-            // let partyData = new PartySchema({
-            //     partyId: interaction.user.id,
-            //     guildId: interaction.guild.id,
-            //     members: [interaction.user.id],
-            // })
-            // await partyData.save().catch(err => {
-            //     console.log("An error occurred while adding the party to the database.")
-            //     console.error(err);
-            //     return;
-            // });
 
             await interaction.reply({content: "You have successfully registered.", ephemeral: true});
             console.log(`Added player to database: ${interaction.user.username} (id: ${interaction.user.id}) (guild: ${interaction.guild.name})`);
