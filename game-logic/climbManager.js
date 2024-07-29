@@ -129,11 +129,11 @@ class FloorManager {
         combatStats += `Floor ${this.climbData.currentFloor}\n`;
         combatStats += `Turn ${this.turnCounter}\n\n`;
         for(let player of this.players) {
-            combatStats += `${player.name}\t${player.gameStats.health} health | ${player.gameStats.attack} attack | ${player.gameStats.initiative} initiative\n`;
+            combatStats += `${player.name}\t${player.gameStats.health} HP | ${player.gameStats.attack} ATK | ${player.gameStats.speed} SPD | ${player.gameStats.initiative} INIT\n`;
         }
         combatStats += "\n";
         for(let enemy of this.enemies) {
-            combatStats += `${enemy.name}\t${enemy.gameStats.health} health | ${enemy.gameStats.attack} attack | ${enemy.gameStats.initiative} initiative\n`;
+            combatStats += `${enemy.name}\t${enemy.gameStats.health} HP | ${enemy.gameStats.attack} ATK | ${enemy.gameStats.speed} SPD | ${enemy.gameStats.initiative} INIT\n`;
         }
         combatStats += "\`\`\`";
 

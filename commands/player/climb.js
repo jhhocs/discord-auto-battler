@@ -68,6 +68,13 @@ module.exports = {
 
         switch (interaction.options.getSubcommand()) {
             case 'start':
+                // Check if commannd is being executed in lobby channel / previous climb channel?
+                let channelName = interaction.channel.name.toLowerCase();
+                if(channelName !== "lobby") {
+                    await interaction.reply({ content: "Please start a climb in the lobby!", ephemeral: true });
+                    return;
+                }
+
                 // Check if player is in a party
                 if(playerData.partyId === "") {
                     // Generate climbId
@@ -158,7 +165,15 @@ module.exports = {
                     await interaction.reply({ content: "You are not in a climb!", ephemeral: true });
                     return;
                 }
-
+                // Make sure player is forfeiting in the correct channel
+                else if(climbData?.channel !== interaction.channel.id) {
+                    await interaction.reply({ content: "You can not forfeit in this channel!", ephemeral: true });
+                    return;
+                }
+                else if(climbData?.inBattle === true) {
+                    await interaction.reply({ content: "You can not forfeit during an active run!", ephemeral: true });
+                    return;
+                }
                 partyData.climbId = "";
                 await partyData.save().catch(err => {
                     console.log(`An error occurred while saving ${interaction.user.username}'s party data. (climb.js)`);
@@ -174,9 +189,14 @@ module.exports = {
                     await interaction.reply({ content: "You are not in a climb!", ephemeral: true });
                     return;
                 }
+                // Make sure player is ascending in the correct channel
+                else if(climbData?.channel !== interaction.channel.id) {
+                    await interaction.reply({ content: "You can not ascend in this channel!", ephemeral: true });
+                    return;
+                }
 
                 // Check if party is in battle
-                if(climbData.inBattle === true) {
+                else if(climbData.inBattle === true) {
                     await interaction.reply({ content: "You already have an active floor", ephemeral: true });
                     return;
                 }
