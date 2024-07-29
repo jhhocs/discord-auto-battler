@@ -6,16 +6,20 @@ class FloorManager {
     constructor(climbData, channel, players) {
         this.climbData = climbData;
         this.players = players.slice();
-        this.enemies = [new Entity('Training Dummy I', new GameStats({ health: 25, attack: 25, speed: 5, luck: 0 })),
-                        new Entity('Training Dummy II', new GameStats({ health: 25, attack: 25, speed: 5, luck: 0 })),
-                        new Entity('Training Dummy III', new GameStats({ health: 25, attack: 25, speed: 5, luck: 0 }))
+        this.enemies = [new Entity('Training Dummy I', new GameStats({ health: 25, attack: 10, speed: 7, luck: 0 })),
+                        new Entity('Training Dummy II', new GameStats({ health: 25, attack: 10, speed: 8, luck: 0 })),
+                        new Entity('Training Dummy III', new GameStats({ health: 25, attack: 10, speed: 9, luck: 0 })),
+                        new Entity('Training Dummy IV', new GameStats({ health: 25, attack: 10, speed: 10, luck: 0 })),
+                        new Entity('Training Dummy V', new GameStats({ health: 25, attack: 10, speed: 11, luck: 0 }))
                         ];
         this.liveEnemies = this.enemies.slice();
         this.livePlayers = this.players.slice();
         this.channel = channel;
-        this.tickTime = Date.now() + (5 * 1000);
+        this.tickTime = Date.now() + (5 * 1000); // Can make certain runs run faster, will need a different run array for every unique tick time
         this.turnCounter = 0;
+
         this.attackQueue = [];
+        this.sorted = false;
     }
 
     tick() {
@@ -30,6 +34,11 @@ class FloorManager {
         }
 
         this.turnCounter++;
+
+        // Reset sorted if attackQueue is empty
+        if(this.attackQueue.length === 0) {
+            this.sorted = false;
+        }
 
         while(this.attackQueue.length === 0) {
             for(let player of this.livePlayers) {
@@ -48,7 +57,30 @@ class FloorManager {
             }
         }
 
-        // Check initiative. > initiative goes first. tiebreaker: speed?
+        // Sort attackQueue. initiative -> speed -> random
+        if(!this.sorted) {
+            this.attackQueue.sort((a, b) => {
+                if(a.gameStats.initiative > b.gameStats.initiative) {
+                    return -1;
+                }
+                else if(a.gameStats.initiative < b.gameStats.initiative) {
+                    return 1;
+                }
+                else { // If initiative is the same, tiebreaker: speed
+                    if(a.gameStats.speed > b.gameStats.speed) {
+                        return -1;
+                    }
+                    else if(a.gameStats.speed < b.gameStats.speed) {
+                        return 1;
+                    }
+                    else { // If speed is the same, tiebreaker: random
+                        return Math.random() < 0.5 ? -1 : 1;
+                    }
+                }
+            });
+            this.sorted = true;
+        }
+
         // Fix calculation of attack. 
 
         let attacker = this.attackQueue.shift();
@@ -93,7 +125,7 @@ class FloorManager {
     }
 
     display(attacker, target, result) {
-        let combatStats = "\`\`\`yaml\n";
+        let combatStats = "\`\`\`prolog\n";
         combatStats += `Floor ${this.climbData.currentFloor}\n`;
         combatStats += `Turn ${this.turnCounter}\n\n`;
         for(let player of this.players) {
@@ -137,7 +169,6 @@ async function startFloor(climbData, channel) {
      * Get player data (stats, items)
      * Get floor data
      */
-    // console.log(channel.guild.id);
     let players = [];
     let partyData = await PartySchema.findOne({partyId: climbData.partyId});
     if(!partyData) {
