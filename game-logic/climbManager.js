@@ -3,15 +3,10 @@ const { PartySchema, PlayerSchema } = require("../schemas/Schemas");
 const { Entity, GameStats, Inventory, Player } = require("../objects/Objects");
 
 class FloorManager {
-    constructor(climbData, channel, players) {
+    constructor(climbData, channel, players, enemies) {
         this.climbData = climbData;
         this.players = players.slice();
-        this.enemies = [new Entity('Training Dummy I', new GameStats({ health: 25, attack: 4, speed: 7, luck: 0 })),
-                        new Entity('Training Dummy II', new GameStats({ health: 25, attack: 3, speed: 8, luck: 0 })),
-                        new Entity('Training Dummy III', new GameStats({ health: 25, attack: 2, speed: 9, luck: 0 })),
-                        new Entity('Training Dummy IV', new GameStats({ health: 25, attack: 1, speed: 10, luck: 0 })),
-                        new Entity('Training Dummy V', new GameStats({ health: 25, attack: 0, speed: 11, luck: 0 }))
-                        ];
+        this.enemies = enemies.slice();
         this.liveEnemies = this.enemies.slice();
         this.livePlayers = this.players.slice();
         this.channel = channel;
@@ -20,6 +15,20 @@ class FloorManager {
 
         this.attackQueue = [];
         this.sorted = false;
+
+        this.characterNameSpacing = 10;
+        for(let player of this.players) {
+            let nameLength = player.name.length;
+            if(nameLength > this.characterNameSpacing) {
+                this.characterNameSpacing = nameLength;
+            }
+        }
+        for(let enemy of this.enemies) {
+            let nameLength = enemy.name.length;
+            if(nameLength > this.characterNameSpacing) {
+                this.characterNameSpacing = nameLength;
+            }
+        }
     }
 
     tick() {
@@ -86,7 +95,7 @@ class FloorManager {
         let attacker = this.attackQueue.shift();
 
         // Check if attacker is dead
-        if(attacker.gameStats.health <= 0) {
+        if(attacker.gameStats.currentHealth <= 0) {
             return true;
         }
 
@@ -125,15 +134,19 @@ class FloorManager {
     }
 
     display(attacker, target, result) {
+
         let combatStats = "\`\`\`prolog\n";
         combatStats += `Floor ${this.climbData.currentFloor}\n`;
         combatStats += `Turn ${this.turnCounter}\n\n`;
+        combatStats += `Characters${" ".repeat(this.characterNameSpacing - 8)}HP        ATK      SPD      INIT\n`;
         for(let player of this.players) {
-            combatStats += `${player.name}\t${player.gameStats.health} HP | ${player.gameStats.attack}-${player.gameStats.attack + 9} ATK | ${player.gameStats.speed} SPD | ${player.gameStats.initiative} INIT\n`;
+            combatStats += this.displayEntityStats(player);
+            // combatStats += `${player.name}${" ".repeat(this.characterNameSpacing - player.name.length)}${player.gameStats.health} HP | ${player.gameStats.attack}-${player.gameStats.attack + 9} ATK | ${player.gameStats.speed} SPD | ${player.gameStats.initiative} INIT\n`;
         }
         combatStats += "\n";
         for(let enemy of this.enemies) {
-            combatStats += `${enemy.name}\t${enemy.gameStats.health} HP | ${enemy.gameStats.attack}-${enemy.gameStats.attack + 9} ATK | ${enemy.gameStats.speed} SPD | ${enemy.gameStats.initiative} INIT\n`;
+            combatStats += this.displayEntityStats(enemy);
+            // combatStats += `${enemy.name}\t${enemy.gameStats.health} HP | ${enemy.gameStats.attack}-${enemy.gameStats.attack + 9} ATK | ${enemy.gameStats.speed} SPD | ${enemy.gameStats.initiative} INIT\n`;
         }
         combatStats += "\`\`\`";
 
@@ -144,6 +157,15 @@ class FloorManager {
             .setColor(0x0099FF)
             .setDescription(`${combatReport}`);
         this.channel.send({content: combatStats, embeds: [embed]});
+    }
+
+    displayEntityStats(entity) {
+        console.log(`${entity.name}` + " " + (Math.max((Math.log(entity.gameStats.currentHealth) /d* Math.LOG10E + 1 | 0), 1)));
+        return `${entity.name}${" ".repeat(this.characterNameSpacing - entity.name.length + 2)}` +
+        `${entity.gameStats.currentHealth}/${entity.gameStats.health}${" ".repeat(9 - (Math.max((Math.log(entity.gameStats.currentHealth) * Math.LOG10E + 1 | 0), 1)) - (Math.log(entity.gameStats.health) * Math.LOG10E + 1 | 0))}` +
+        `${entity.gameStats.attack}-${entity.gameStats.attack + 9}${" ".repeat(8 - (Math.max((Math.log(entity.gameStats.attack) * Math.LOG10E + 1 | 0), 1)) - (Math.log(entity.gameStats.attack + 9) * Math.LOG10E + 1 | 0))}` +
+        `${entity.gameStats.speed}${" ".repeat(9 - (Math.log(entity.gameStats.speed) * Math.LOG10E + 1 | 0))}` +
+        `${entity.gameStats.initiative}\n`;
     }
 
     displayEnd(playerVictory) {
@@ -170,6 +192,12 @@ async function startFloor(climbData, channel) {
      * Get floor data
      */
     let players = [];
+    let enemies = [new Entity('Training Dummy I', new GameStats({ health: 25, attack: 4, speed: 7, luck: 0 })),
+                new Entity('Training Dummy II', new GameStats({ health: 25, attack: 3, speed: 8, luck: 0 })),
+                new Entity('Training Dummy III', new GameStats({ health: 25, attack: 2, speed: 9, luck: 0 })),
+                new Entity('Training Dummy IV', new GameStats({ health: 25, attack: 1, speed: 10, luck: 0 })),
+                new Entity('Training Dummy V', new GameStats({ health: 25, attack: 0, speed: 11, luck: 0 }))
+                ];
     let partyData = await PartySchema.findOne({partyId: climbData.partyId});
     if(!partyData) {
         console.log("Party not found. (climbManager.js)");
@@ -184,7 +212,7 @@ async function startFloor(climbData, channel) {
         players.push(player);
     }
 
-    let floor = new FloorManager(climbData, channel, players)
+    let floor = new FloorManager(climbData, channel, players, enemies)
     runs.push(floor);
     channel.send(`Starting floor ${climbData.currentFloor}`);
     console.log(`Starting floor ${climbData.currentFloor}. Active runs: ${runs.length}`);

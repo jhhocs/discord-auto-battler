@@ -9,10 +9,10 @@ class Entity {
         this.gameStats.resetInitiative();
         let damage = Math.floor(Math.random() * 10) + this.gameStats.attack;
         let deaths = 0;
-        target.gameStats.health -= damage;
-        if(target.gameStats.health <= 0) {
+        target.gameStats.currentHealth -= damage;
+        if(target.gameStats.currentHealth <= 0) {
             target.gameStats.initiative = 0;
-            target.gameStats.health = 0;
+            target.gameStats.currentHealth = 0;
             deaths++;
         }
         return { damage: damage, deaths: deaths };
