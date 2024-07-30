@@ -5,7 +5,6 @@ class GameStats extends Stats {
         super(stats);
         this.currentHealth = stats.health;
         this.initiative = 0;
-        this.minAttack = stats.attack - 9;
     }
 
 

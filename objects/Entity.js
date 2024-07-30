@@ -7,7 +7,7 @@ class Entity {
 
     attack(target) {
         this.gameStats.resetInitiative();
-        let damage = Math.floor(Math.random() * 10) + this.gameStats.minAttack;
+        let damage = Math.floor(Math.random() * 10) + this.gameStats.attack;
         let deaths = 0;
         target.gameStats.health -= damage;
         if(target.gameStats.health <= 0) {

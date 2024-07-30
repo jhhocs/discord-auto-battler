@@ -6,11 +6,11 @@ class FloorManager {
     constructor(climbData, channel, players) {
         this.climbData = climbData;
         this.players = players.slice();
-        this.enemies = [new Entity('Training Dummy I', new GameStats({ health: 25, attack: 10, speed: 7, luck: 0 })),
-                        new Entity('Training Dummy II', new GameStats({ health: 25, attack: 10, speed: 8, luck: 0 })),
-                        new Entity('Training Dummy III', new GameStats({ health: 25, attack: 10, speed: 9, luck: 0 })),
-                        new Entity('Training Dummy IV', new GameStats({ health: 25, attack: 10, speed: 10, luck: 0 })),
-                        new Entity('Training Dummy V', new GameStats({ health: 25, attack: 10, speed: 11, luck: 0 }))
+        this.enemies = [new Entity('Training Dummy I', new GameStats({ health: 25, attack: 4, speed: 7, luck: 0 })),
+                        new Entity('Training Dummy II', new GameStats({ health: 25, attack: 3, speed: 8, luck: 0 })),
+                        new Entity('Training Dummy III', new GameStats({ health: 25, attack: 2, speed: 9, luck: 0 })),
+                        new Entity('Training Dummy IV', new GameStats({ health: 25, attack: 1, speed: 10, luck: 0 })),
+                        new Entity('Training Dummy V', new GameStats({ health: 25, attack: 0, speed: 11, luck: 0 }))
                         ];
         this.liveEnemies = this.enemies.slice();
         this.livePlayers = this.players.slice();
@@ -129,11 +129,11 @@ class FloorManager {
         combatStats += `Floor ${this.climbData.currentFloor}\n`;
         combatStats += `Turn ${this.turnCounter}\n\n`;
         for(let player of this.players) {
-            combatStats += `${player.name}\t${player.gameStats.health} HP | ${player.gameStats.attack} ATK | ${player.gameStats.speed} SPD | ${player.gameStats.initiative} INIT\n`;
+            combatStats += `${player.name}\t${player.gameStats.health} HP | ${player.gameStats.attack}-${player.gameStats.attack + 9} ATK | ${player.gameStats.speed} SPD | ${player.gameStats.initiative} INIT\n`;
         }
         combatStats += "\n";
         for(let enemy of this.enemies) {
-            combatStats += `${enemy.name}\t${enemy.gameStats.health} HP | ${enemy.gameStats.attack} ATK | ${enemy.gameStats.speed} SPD | ${enemy.gameStats.initiative} INIT\n`;
+            combatStats += `${enemy.name}\t${enemy.gameStats.health} HP | ${enemy.gameStats.attack}-${enemy.gameStats.attack + 9} ATK | ${enemy.gameStats.speed} SPD | ${enemy.gameStats.initiative} INIT\n`;
         }
         combatStats += "\`\`\`";
 
