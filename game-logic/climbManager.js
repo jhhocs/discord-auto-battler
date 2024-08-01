@@ -33,12 +33,13 @@ class FloorManager {
 
     tick() {
         // TODO: Make sure highest initiative goes first
-        if(this.livePlayers.length === 0) {
+        if(this.livePlayers.length === 0) { // lose
             this.displayEnd(false);
             return false;
         }
-        else if(this.liveEnemies.length === 0) {
+        else if(this.liveEnemies.length === 0) { // win
             this.displayEnd(true);
+            this.climbData.currentFloor++;
             return false;
         }
 
@@ -99,27 +100,27 @@ class FloorManager {
             return true;
         }
 
-        let target, result;
+        let result;
         if(attacker instanceof Player) {
-            target = this.liveEnemies[Math.floor(Math.random() * (this.liveEnemies.length))];
-            result = attacker.attack(target);
-            if(result.deaths > 0) {
-                const index = this.liveEnemies.indexOf(target);
-                this.liveEnemies.splice(index, 1);
-            }
+            // target = this.liveEnemies[Math.floor(Math.random() * (this.liveEnemies.length))];
+            result = attacker.attack(this.liveEnemies);
+            // if(result.deaths > 0) {
+            //     const index = this.liveEnemies.indexOf(target);
+            //     this.liveEnemies.splice(index, 1);
+            // }
 
         }
         else {
-            target = this.livePlayers[Math.floor(Math.random() * (this.livePlayers.length))];
-            result = attacker.attack(target);
-            if(result.deaths > 0) {
-                const index = this.livePlayers.indexOf(target);
-                this.livePlayers.splice(index, 1);
-            }
+            // target = this.livePlayers[Math.floor(Math.random() * (this.livePlayers.length))];
+            result = attacker.attack(this.livePlayers);
+            // if(result.deaths > 0) {
+            //     const index = this.livePlayers.indexOf(target);
+            //     this.livePlayers.splice(index, 1);
+            // }
         }
 
         // console.log(`Turn ${this.turnCounter} | Live Players: ${this.livePlayers.length} | Live Enemies: ${this.liveEnemies.length}`);
-        this.display(attacker, target, result);
+        this.display(attacker, result);
 
         if(this.turnCounter == 50) {
             console.log(`Party ${this.climbData.partyId}'s run has been terminated (Max turns). Active runs: ${runs.length - 1}`);
@@ -133,7 +134,7 @@ class FloorManager {
         this.tickTime = Date.now() + (seconds * 1000);
     }
 
-    display(attacker, target, result) {
+    display(attacker, result) {
 
         let combatStats = "\`\`\`prolog\n";
         combatStats += `Floor ${this.climbData.currentFloor}\n`;
@@ -150,7 +151,10 @@ class FloorManager {
         }
         combatStats += "\`\`\`";
 
-        let combatReport = `${attacker.name} attacks ${target.name} for ${result.damage} damage.`;
+        let combatReport = `${attacker.name} attacks ${result.target.name} for ${result.damage} damage.\n`;
+        for(let entity of result.deaths) {
+            combatReport += `${entity.name} has died.`;
+        }
 
         let embed = new EmbedBuilder()
             .setTitle(`${attacker.name} attacks`)
@@ -160,7 +164,7 @@ class FloorManager {
     }
 
     displayEntityStats(entity) {
-        console.log(`${entity.name}` + " " + (Math.max((Math.log(entity.gameStats.currentHealth) /d* Math.LOG10E + 1 | 0), 1)));
+        // console.log(`${entity.name}` + " " + (Math.max((Math.log(entity.gameStats.currentHealth) * Math.LOG10E + 1 | 0), 1)));
         return `${entity.name}${" ".repeat(this.characterNameSpacing - entity.name.length + 2)}` +
         `${entity.gameStats.currentHealth}/${entity.gameStats.health}${" ".repeat(9 - (Math.max((Math.log(entity.gameStats.currentHealth) * Math.LOG10E + 1 | 0), 1)) - (Math.log(entity.gameStats.health) * Math.LOG10E + 1 | 0))}` +
         `${entity.gameStats.attack}-${entity.gameStats.attack + 9}${" ".repeat(8 - (Math.max((Math.log(entity.gameStats.attack) * Math.LOG10E + 1 | 0), 1)) - (Math.log(entity.gameStats.attack + 9) * Math.LOG10E + 1 | 0))}` +
@@ -176,8 +180,8 @@ class FloorManager {
         }
         let embed = new EmbedBuilder()
             .setTitle(`Floor ${this.climbData.currentFloor}`)
-            .setColor(0x0099FF)
-            .setDescription(`${playerVictory ? "You have cleared this floor" : "You have been defeated"}`);
+            .setColor(playerVictory? 0x0099FF: 0xFF0000)
+            .setDescription(`${playerVictory ? "You have cleared this floor" : "Your party has been defeated"}`);
         this.channel.send({content: users, embeds: [embed]});
     }
 }
@@ -214,7 +218,7 @@ async function startFloor(climbData, channel) {
 
     let floor = new FloorManager(climbData, channel, players, enemies)
     runs.push(floor);
-    channel.send(`Starting floor ${climbData.currentFloor}`);
+    // channel.send(`Starting floor ${climbData.currentFloor}`);
     console.log(`Starting floor ${climbData.currentFloor}. Active runs: ${runs.length}`);
     console.log("Players: ");
     for(let i = 0; i < floor.players.length; i++) {
@@ -238,9 +242,15 @@ async function startRuns() {
         return;
     }
     // Set timeout for next tick
-    setTimeout(() => {
+    setTimeout(async () => {
         if(runs[0].tick()) {
             runs.push(runs[0]);
+        }
+        else {
+            runs[0].climbData.inBattle = false;
+            await runs[0].climbData.save().catch(err => {
+                console.log(`An error occurred while saving climb data for party ${runs[0].climbData.partyId} (climbManager.js)`);
+            });
         }
         runs.shift();
         startRuns();

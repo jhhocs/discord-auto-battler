@@ -202,8 +202,8 @@ module.exports = {
                 }
 
                 // Increment party's current floor
-                climbData.currentFloor++;
-                // climbData.inBattle = true;
+                // climbData.currentFloor;
+                climbData.inBattle = true;
 
                 startFloor(climbData, interaction.channel);
 
@@ -214,7 +214,7 @@ module.exports = {
                     return;
                 });
 
-                await interaction.reply({ content: `You have ascended to floor ${climbData.currentFloor}.`, ephemeral: true });
+                await interaction.reply({ content: `Starting floor ${climbData.currentFloor}`});
                 break;
                 default:
                 break;
