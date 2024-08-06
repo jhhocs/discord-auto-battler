@@ -4,4 +4,5 @@ module.exports = {
     PlayerSchema: require('./player-schema'),
     GuildSchema: require('./guild-schema'),
     InventorySchema: require('./inventory-schema'),
+    BattleSchema: require('./battle-schema'),
 }

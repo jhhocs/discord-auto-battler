@@ -14,6 +14,10 @@ const PartySchema = new Schema({
         type: String,
         required: false,
     },
+    battleId: {
+        type: String,
+        required: false,
+    },
     leader: {
         type: String,
         required: true,
@@ -23,6 +27,10 @@ const PartySchema = new Schema({
         required: true,
         maxItems: 3,
     },
+    temp: {
+        type: Boolean,
+        required: false,
+    }
 });
 
 const name = "parties"

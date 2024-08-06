@@ -16,7 +16,11 @@ const InventorySchema = new Schema({
     inventorySize: {
         type: Number,
         required: true,
-    }
+    },
+    cards: {
+        type: Array,
+        required: true,
+    },
 });
 
 const name = "inventories"
