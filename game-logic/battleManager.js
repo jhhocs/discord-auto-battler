@@ -129,6 +129,7 @@ class BattleManager {
 
         if(this.turnCounter == 50) {
             console.log(`Party ${this.battleData.partyId1} & ${this.battleData.partyId2}'s battle has been terminated (Max turns). Active battles: ${runs.length - 1}`);
+            this.displayTimeout();
             return false;
         }
         this.setTickTime(7);
@@ -189,8 +190,24 @@ class BattleManager {
         }
         let embed = new EmbedBuilder()
             .setTitle(`Battle Complete!`)
-            .setColor(playerVictory? 0x0099FF: 0xFF0000)
-            .setDescription(`${playerVictory ? party1Names + " win(s)" : party2Names + " win(s)"}`);
+            .setColor(0x0099FF)
+            .setDescription(`${playerVictory ? "Congratulations " + party1Names : "Congratulations " + party2Names}`);
+        this.channel.send({content: party1Names + " " + party2Names, embeds: [embed]});
+    }
+
+    displayTimeout() {
+        let party1Names = "";
+        let party2Names = "";
+        for(let player of this.party1) {
+            party1Names += `<@${player.userId}> `;
+        }
+        for(let player of this.party2) {
+            party2Names += `<@${player.userId}> `;
+        }
+        let embed = new EmbedBuilder()
+            .setTitle(`Battle Complete!`)
+            .setColor(0x0099FF)
+            .setDescription(`Draw :|`);
         this.channel.send({content: party1Names + " " + party2Names, embeds: [embed]});
     }
 }

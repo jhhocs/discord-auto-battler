@@ -1,7 +1,6 @@
-const { SlashCommandBuilder } = require('@discordjs/builders');
+const { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, SlashCommandBuilder } = require('discord.js');
 const mongoose = require('mongoose');
 const mongooseConnection = require('../../events/mongooseConnection');
-const { ChannelType } = require('discord.js');
 const { BattleSchema, PlayerSchema, PartySchema } = require('../../schemas/Schemas');
 const { startBattle } = require('../../game-logic/battleManager');
 
@@ -93,118 +92,175 @@ module.exports = {
             return;
         }
 
-        let battleId = new mongoose.Types.ObjectId();
+        const accept = new ButtonBuilder()
+                    .setCustomId('accept')
+                    .setLabel('Accept')
+                    .setStyle(ButtonStyle.Primary);
 
-        // Check if initiating player is in a party
-        if(player1Data.partyId === "") {
-            // Create party for user
-            let partyId = new mongoose.Types.ObjectId();
-            party1Data = new PartySchema({
-                partyId: partyId,
-                guildId: interaction.guild.id,
-                battleId: battleId,
-                leader: player1Data.userId,
-                members: [],
-                temp: true,
-            });
+        const decline = new ButtonBuilder()
+            .setCustomId('decline')
+            .setLabel('Decline')
+            .setStyle(ButtonStyle.Danger);
 
-            // Update player's partyId
-            player1Data.partyId = partyId;
+        const row = new ActionRowBuilder()
+            .addComponents(accept, decline);
 
-            // Save player data
-            await player1Data.save().catch(err => {
-                console.log(`An error occurred while saving ${interaction.user.username}'s player data. (climb.js)`);
-                console.error(err);
-                return;
-            });
+        let message = "Channelging ";
+        if(party2Data && party2Data?.members.length > 0) {
+            message += `<@${party2Data.leader}> `;
+            for(let i = 0; i < party2Data.members.length; i++) {
+                message += `<@${party2Data.members[i]}> `;
+            }
+        }
+        else {
+            message += `<@${player2Data.userId}> `;
+        }
+        message += "to a battle!";
+
+        const response = await interaction.reply({ content: message, components:[row]});
+
+        const filter = (i) => {
+            if(party2Data.leader == i.user.id) {
+                return true;
+            }
+            for(let i = 0; i < party2Data.members.length; i++) {
+                if(party2Data.members[i] == i.user.id) {
+                    return true;
+                }
+            }
+            return false;
         }
 
-        // Check if opponent is in a party
-        if(player2Data.partyId === "") {
-            // Create party for user
-            let partyId = new mongoose.Types.ObjectId();
-            party2Data = new PartySchema({
-                partyId: partyId,
-                guildId: interaction.guild.id,
-                battleId: battleId,
-                leader: player2Data.userId,
-                members: [],
-                temp: true,
-            });
-
-            // Update player's partyId
-            player2Data.partyId = partyId;
-
-            // Save player data
-            await player2Data.save().catch(err => {
-                console.log(`An error occurred while saving ${interaction.user.username}'s player data. (climb.js)`);
-                console.error(err);
-                return;
-            });
-        }
-
-        // Check if opponent player is in a party
-
-        // // Check if party is already in a battle
-        // else if(partyData.battleId !== "") {
-        //     await interaction.reply({ content: "You are already in a battle!", ephemeral: true });
-        //     return;
-        // }
-        // else {
-        //     let id = new mongoose.Types.ObjectId();
-        //     partyData.battleId = id;
-
-        //     // Generate new climb
-        //     battleData = new BattleSchema({
-        //         _id: id,
-        //         partyId: partyData.partyId,
-        //         inBattle: false,
-        //     });
-        // }
-
-        battleData = new BattleSchema({
-            _id: battleId,
-            partyId1: party1Data.partyId,
-            partyId2: party2Data.partyId,
-            inBattle: false,
-        });
-
-        // Create new channel for climb
         try {
-            let partyLeader = await PlayerSchema.findOne({userId: party1Data.leader, guildId: interaction.guild.id});
-            // let channel = await interaction.guild.channels.create({
-            let channel = await interaction.channel.parent.children.create({
-                name: `${partyLeader.username}s Battle`,
-                type: ChannelType.GuildText,
-            })
-            battleData.channel = channel.id;
-            console.log(`Created channel for battle: ${channel.name} (id: ${channel.id})`);
-            startBattle(battleData, channel, party1Data, party2Data);
-            await interaction.reply({ content: `You have started a battle! <\#${channel.id}>`, ephemeral: true });
-        }
-        catch(err) {
-            console.log("An error occurred while creating a channel for the battle.");
-            console.error(err);
-            return;
-        }
+            const userResponse = await response.awaitMessageComponent({ filter: filter, time: 60000 });
+            switch (userResponse.customId) {
+                case 'accept':
+                    console.log("accepted");
+                    let battleId = new mongoose.Types.ObjectId();
 
-        // Save party data
-        await party1Data.save().catch(err => {
-            console.log(`An error occurred while saving ${interaction.user.username}'s party data. (battle.js)`);
-            console.error(err);
-            return;
-        });
-        await party2Data.save().catch(err => {
-            console.log(`An error occurred while saving ${interaction.user.username}'s opponent's party data. (battle.js)`);
-            console.error(err);
-            return;
-        });
+                    // Check if initiating player is in a party
+                    if(player1Data.partyId === "") {
+                        // Create party for user
+                        let partyId = new mongoose.Types.ObjectId();
+                        party1Data = new PartySchema({
+                            partyId: partyId,
+                            guildId: interaction.guild.id,
+                            battleId: battleId,
+                            leader: player1Data.userId,
+                            members: [],
+                            temp: true,
+                        });
 
-        // Save battle data
-        await battleData.save().catch(err => {
-            console.log(`An error occurred while saving ${interaction.user.username}'s battle data. (battle.js)`);
-            console.error(err);
-            return;
-        });
+                        // Update player's partyId
+                        player1Data.partyId = partyId;
+
+                        // Save player data
+                        await player1Data.save().catch(err => {
+                            console.log(`An error occurred while saving ${interaction.user.username}'s player data. (climb.js)`);
+                            console.error(err);
+                            return;
+                        });
+                    }
+
+                    // Check if opponent is in a party
+                    if(player2Data.partyId === "") {
+                        // Create party for user
+                        let partyId = new mongoose.Types.ObjectId();
+                        party2Data = new PartySchema({
+                            partyId: partyId,
+                            guildId: interaction.guild.id,
+                            battleId: battleId,
+                            leader: player2Data.userId,
+                            members: [],
+                            temp: true,
+                        });
+
+                        // Update player's partyId
+                        player2Data.partyId = partyId;
+
+                        // Save player data
+                        await player2Data.save().catch(err => {
+                            console.log(`An error occurred while saving ${interaction.user.username}'s player data. (climb.js)`);
+                            console.error(err);
+                            return;
+                        });
+                    }
+
+                    // Check if opponent player is in a party
+
+                    // // Check if party is already in a battle
+                    // else if(partyData.battleId !== "") {
+                    //     await interaction.reply({ content: "You are already in a battle!", ephemeral: true });
+                    //     return;
+                    // }
+                    // else {
+                    //     let id = new mongoose.Types.ObjectId();
+                    //     partyData.battleId = id;
+
+                    //     // Generate new climb
+                    //     battleData = new BattleSchema({
+                    //         _id: id,
+                    //         partyId: partyData.partyId,
+                    //         inBattle: false,
+                    //     });
+                    // }
+
+                    battleData = new BattleSchema({
+                        _id: battleId,
+                        partyId1: party1Data.partyId,
+                        partyId2: party2Data.partyId,
+                        inBattle: false,
+                    });
+
+                    // Create new channel for climb
+                    try {
+                        let partyLeader = await PlayerSchema.findOne({userId: party1Data.leader, guildId: interaction.guild.id});
+                        // let channel = await interaction.guild.channels.create({
+                        let channel = await interaction.channel.parent.children.create({
+                            name: `${partyLeader.username}s Battle`,
+                            type: ChannelType.GuildText,
+                        })
+                        battleData.channel = channel.id;
+                        console.log(`Created channel for battle: ${channel.name} (id: ${channel.id})`);
+                        startBattle(battleData, channel, party1Data, party2Data);
+                        await interaction.editReply({ content: `Battle Started! <\#${channel.id}>`, components: [] });
+                    }
+                    catch(err) {
+                        console.log("An error occurred while creating a channel for the battle.");
+                        console.error(err);
+                        return;
+                    }
+
+                    // Save party data
+                    await party1Data.save().catch(err => {
+                        console.log(`An error occurred while saving ${interaction.user.username}'s party data. (battle.js)`);
+                        console.error(err);
+                        return;
+                    });
+                    await party2Data.save().catch(err => {
+                        console.log(`An error occurred while saving ${interaction.user.username}'s opponent's party data. (battle.js)`);
+                        console.error(err);
+                        return;
+                    });
+
+                    // Save battle data
+                    await battleData.save().catch(err => {
+                        console.log(`An error occurred while saving ${interaction.user.username}'s battle data. (battle.js)`);
+                        console.error(err);
+                        return;
+                    });
+                    break;
+                case 'decline':
+                    console.log("declined");
+                    await interaction.editReply({ content: "Battle Declined! >:(", components: [] });
+                    break;
+                default:
+                    break;
+            }
+        }
+        catch (error) {
+            console.log("Opponent did not respond to battle request.");
+            await interaction.editReply({ content: "Battle Request has timed out!", components: [] });
+        }
     },
 };
