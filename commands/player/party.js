@@ -9,7 +9,6 @@ const { PartySchema, PlayerSchema} = require('../../schemas/Schemas');
 
 module.exports = {
     category: 'player',
-    dev: true,
     cooldown: 1,
     data: new SlashCommandBuilder()
 	.setName('party')

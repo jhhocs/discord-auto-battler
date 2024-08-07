@@ -11,7 +11,6 @@ const { startBattle } = require('../../game-logic/battleManager');
 
 module.exports = {
     category: 'player',
-    dev: true,
     cooldown: 1,
     data: new SlashCommandBuilder()
         .setName('battle')

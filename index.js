@@ -3,10 +3,10 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { Client, Collection, Events, GatewayIntentBits } = require('discord.js');
 // const mongoose = require('mongoose');
-
-require("dotenv").config();
+const { token, globalToken } = require('./auth');
+// require("dotenv").config();
 // let token = "";
-const token = process.env.DEV_TOKEN;
+// const token = process.env.DEV_TOKEN;
 // const token = process.env.GLOBAL_TOKEN;
 
 // Create a new client instance
@@ -51,4 +51,8 @@ for (const file of eventFiles) {
 
 // Log in to Discord with your client's token
 // client.login(process.env.GLOBAL_TOKEN);
-client.login(token);
+// Dev Login
+// client.login(token);
+
+// Global Login
+client.login(globalToken);

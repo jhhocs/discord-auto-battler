@@ -1,5 +1,5 @@
 const { REST, Routes } = require('discord.js');
-const { clientId, token } = require('./auth.js');
+const { globalClientId, globalToken } = require('./auth.js');
 
 
 // const rest = new REST().setToken(token);
@@ -22,9 +22,9 @@ readline.question("Enter \'delete-global-commands\' to delete all global command
 console.log(`Hello, ${input}!`);
 if (input == "delete-global-commands") {
     console.log("Deleting all global commands...");
-    const rest = new REST().setToken(token);
+    const rest = new REST().setToken(globalToken);
     try {
-        rest.put(Routes.applicationCommands(clientId), { body: [] })
+        rest.put(Routes.applicationCommands(globalClientId), { body: [] })
             .then(() => console.log('Successfully deleted all application commands.'))
             .catch(console.error);
     }

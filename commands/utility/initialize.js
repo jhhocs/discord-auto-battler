@@ -4,7 +4,6 @@ const { SlashCommandBuilder } = require('@discordjs/builders');
 const { registerGuild } = require("../../misc/setup");
 module.exports = {
 	category: 'initialize',
-    dev: true,
     cooldown: 1,
     data: new SlashCommandBuilder()
         .setName('initialize')

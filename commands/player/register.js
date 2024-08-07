@@ -15,7 +15,6 @@ const mongooseConnection = require('../../events/mongooseConnection');
 
 module.exports = {
     category: "player",
-    dev: true,
     cooldown: 1,
     data: new SlashCommandBuilder()
         .setName('register')
