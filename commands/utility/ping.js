@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 
 module.exports = {
 	category: 'utility',
+	dev: true,
 	cooldown: 1,
 	data: new SlashCommandBuilder()
 		.setName('ping')

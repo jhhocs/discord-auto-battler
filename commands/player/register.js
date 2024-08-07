@@ -1,10 +1,8 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const playerSchema = require('../../schemas/player-schema');
-const partySchema = require('../../schemas/party-schema');
-const guildSchema = require("../../schemas/guild-schema");
+const { PlayerSchema, GuildSchema } = require('../../schemas/Schemas');
 const { Inventory, Stats } = require('../../objects/Objects');
 const mongooseConnection = require('../../events/mongooseConnection');
-const { EmbedType } = require('discord.js');
+// const { EmbedType } = require('discord.js');
 
 /*
  * Register a new user
@@ -13,14 +11,10 @@ const { EmbedType } = require('discord.js');
  * Let user know if they have successfully registered. 
  */
 
-
-// TODO: Users have 1 account per guild
-
 // Probably want to change this to a react event. Player registers by reacting to a message
 
 module.exports = {
     category: "player",
-    dev: true,
     cooldown: 1,
     data: new SlashCommandBuilder()
         .setName('register')
@@ -28,20 +22,19 @@ module.exports = {
     async execute(interaction) {
         // Check for database connection
         if(mongooseConnection.ready === false) {
-            console.log("No connection to database. Player will not be added to database.");
+            console.log("No connection to database. (register.js)");
             return;
         }
 
-        let playerData = await playerSchema.findOne({userId: interaction.user.id, guildId: interaction.guild.id});
+        let playerData = await PlayerSchema.findOne({userId: interaction.user.id, guildId: interaction.guild.id});
         // If player does not exist in database, add it
         if(!playerData) {
-            let guildData = await guildSchema.findOneAndUpdate(
+            let guildData = await GuildSchema.findOneAndUpdate(
                 {
                     _id: interaction.guild.id
                 },
                 {
-                    // 
-                    $addToSet: { players: interaction.user.id, parties: interaction.user.id },
+                    $addToSet: { players: interaction.user.id },
                 }
             );
             // Check if guild is registered with the database
@@ -52,7 +45,7 @@ module.exports = {
             }
 
             // Add player to database
-            playerData = new playerSchema({
+            playerData = new PlayerSchema({
                 userId: interaction.user.id,
                 guildId: interaction.guild.id,
                 username: interaction.user.username,
@@ -65,17 +58,6 @@ module.exports = {
                 console.error(err);
                 return;
             });
-            // Add party to database
-            // let partyData = new partySchema({
-            //     partyId: interaction.user.id,
-            //     guildId: interaction.guild.id,
-            //     members: [interaction.user.id],
-            // })
-            // await partyData.save().catch(err => {
-            //     console.log("An error occurred while adding the party to the database.")
-            //     console.error(err);
-            //     return;
-            // });
 
             await interaction.reply({content: "You have successfully registered.", ephemeral: true});
             console.log(`Added player to database: ${interaction.user.username} (id: ${interaction.user.id}) (guild: ${interaction.guild.name})`);

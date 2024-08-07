@@ -1,7 +1,7 @@
 const { Schema, model, models } = require('mongoose');
 
 
-const partySchema = new Schema({
+const PartySchema = new Schema({
     partyId: {
         type: String,
         required: true,
@@ -9,6 +9,14 @@ const partySchema = new Schema({
     guildId: {
         type: String,
         required: true,
+    },
+    climbId: {
+        type: String,
+        required: false,
+    },
+    battleId: {
+        type: String,
+        required: false,
     },
     leader: {
         type: String,
@@ -19,7 +27,11 @@ const partySchema = new Schema({
         required: true,
         maxItems: 3,
     },
+    temp: {
+        type: Boolean,
+        required: false,
+    }
 });
 
 const name = "parties"
-module.exports = models[name] || model(name, partySchema);
+module.exports = models[name] || model(name, PartySchema);

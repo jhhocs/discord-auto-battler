@@ -1,6 +1,6 @@
 const { Schema, model, models } = require('mongoose');
 
-const inventorySchema = new Schema({
+const InventorySchema = new Schema({
     coins: {
         type: Number,
         required: true,
@@ -16,8 +16,12 @@ const inventorySchema = new Schema({
     inventorySize: {
         type: Number,
         required: true,
-    }
+    },
+    cards: {
+        type: Array,
+        required: true,
+    },
 });
 
 const name = "inventories"
-module.exports = inventorySchema;
+module.exports = models[name] || model(name, InventorySchema);;

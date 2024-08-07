@@ -3,7 +3,7 @@ const { EmbedBuilder } = require("discord.js");
 // Can add more stats later if needed
 const defaultStats = {
     health: 100,
-    attack: 10,
+    attack: 1,
     speed: 10,
     luck: 0,
 }
@@ -24,7 +24,7 @@ class Stats {
     display() {
         let stats = "";
         stats += `Health: ${this.health}\n`;
-        stats += `Attack: ${this.attack}\n`;
+        stats += `Attack: ${this.attack + 9}\n`;
         stats += `Speed: ${this.speed}\n`;
         stats += `Luck: ${this.luck}\n`;
         const embed = new EmbedBuilder()

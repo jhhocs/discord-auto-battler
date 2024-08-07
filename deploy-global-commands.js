@@ -1,8 +1,7 @@
 const { REST, Routes } = require('discord.js');
 const fs = require('node:fs');
 const path = require('node:path');
-
-require("dotenv").config();
+const { globalClientId, globalToken } = require('./auth');
 
 const commands = [];
 // Grab all the command folders from the commands directory you created earlier
@@ -32,7 +31,7 @@ for (const folder of commandFolders) {
 }
 
 // Construct and prepare an instance of the REST module
-const rest = new REST().setToken(process.env.DEV_TOKEN);
+const rest = new REST().setToken(globalToken);
 
 // and deploy your commands!
 (async () => {
@@ -41,7 +40,7 @@ const rest = new REST().setToken(process.env.DEV_TOKEN);
 
         // Update Global Commands
         const data = await rest.put(
-            Routes.applicationCommands(process.env.DEV_CLIENT_ID),
+            Routes.applicationCommands(globalClientId),
             { body: commands },
         );
 

@@ -1,5 +1,6 @@
 const { Events, Collection } = require('discord.js');
 
+// Check if user is registered in the database
 module.exports = {
 	name: Events.InteractionCreate,
 	async execute(interaction) {
