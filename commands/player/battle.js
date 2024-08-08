@@ -3,7 +3,6 @@ const mongoose = require('mongoose');
 const mongooseConnection = require('../../events/mongooseConnection');
 const { BattleSchema, PlayerSchema, PartySchema } = require('../../schemas/Schemas');
 const { startBattle } = require('../../game-logic/battleManager');
-
 /*
  * Show player their inventory
  * Display gold / currency and items

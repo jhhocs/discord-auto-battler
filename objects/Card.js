@@ -5,4 +5,8 @@ class Card {
         this.rarity = rarity;
         this.type = type;
     }
+
+
 }
+
+module.exports = Card;

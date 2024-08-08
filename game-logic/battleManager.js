@@ -5,11 +5,11 @@ const playerSchema = require("../schemas/player-schema");
 
 class BattleManager {
     constructor(battleData, channel, party1, party2) {
-        this.battleData = battleData;
-        this.party1 = party1.slice();
-        this.party2 = party2.slice();
-        this.live1 = this.party1.slice();
-        this.live2 = this.party2.slice();
+        this.battleData = battleData; // Battle-schema object
+        this.party1 = party1.slice(); // Array of Player objects
+        this.party2 = party2.slice(); // Array of Player objects
+        this.live1 = this.party1.slice(); // Array of Player objects
+        this.live2 = this.party2.slice(); // Array of Player objects
         // this.liveEnemies = this.enemies.slice();
         // this.livePlayers = this.players.slice();
         this.channel = channel;
@@ -101,10 +101,20 @@ class BattleManager {
 
         let result;
         if(attacker.partyId === this.party1[0].partyId) {
-            result = attacker.attack(this.live2);
+            let target = this.live2[Math.floor(Math.random() * (this.live2.length))];
+            result = attacker.attack(target);
+            if(result.deaths.length > 0) {
+                const index = this.live2.indexOf(target);
+                this.live2.splice(index, 1);
+            }
         }
         else {
-            result = attacker.attack(this.live1);
+            let target = this.live1[Math.floor(Math.random() * (this.live1.length))];
+            result = attacker.attack(target);
+            if(result.deaths.length > 0) {
+                const index = this.live1.indexOf(target);
+                this.live1.splice(index, 1);
+            }
         }
         // if(attacker instanceof Player) {
         //     // target = this.liveEnemies[Math.floor(Math.random() * (this.liveEnemies.length))];
