@@ -52,7 +52,7 @@ for (const file of eventFiles) {
 // Log in to Discord with your client's token
 // client.login(process.env.GLOBAL_TOKEN);
 // Dev Login
-client.login(token);
+// client.login(token);
 
 // Global Login
-// client.login(globalToken);
+client.login(globalToken);

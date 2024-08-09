@@ -8,6 +8,8 @@ const { startBattle } = require('../../game-logic/battleManager');
  * Display gold / currency and items
  */
 
+// BATTLE STATUS NOT SET WHEN PLAYER IS ALREADY IN A PARTY
+
 module.exports = {
     category: 'player',
     cooldown: 1,
@@ -118,15 +120,16 @@ module.exports = {
         const response = await interaction.reply({ content: message, components:[row]});
 
         const filter = (i) => {
-            if(party2Data.leader == i.user.id) {
-                return true;
-            }
-            for(let i = 0; i < party2Data.members.length; i++) {
-                if(party2Data.members[i] == i.user.id) {
-                    return true;
-                }
-            }
-            return false;
+            return true;
+            // if(party2Data.leader == i.user.id) {
+            //     return true;
+            // }
+            // for(let i = 0; i < party2Data.members.length; i++) {
+            //     if(party2Data.members[i] == i.user.id) {
+            //         return true;
+            //     }
+            // }
+            // return false;
         }
 
         try {

@@ -3,6 +3,8 @@ const defaultInventory = {
     items: [],
     equippedItems: [],
     inventorySize: 50,
+    cards: [],
+    equippedCards: ["Strike", "Strike", "Strike", "Strike", "Neutralize"]
 }
 
 class Inventory {
@@ -12,6 +14,8 @@ class Inventory {
         this.items = inventory.items;
         this.equippedItems = inventory.equippedItems;
         this.inventorySize = inventory.inventorySize;
+        this.cards = inventory.cards;
+        this.equippedCards = inventory.equippedCards;
     }
 
     static defaultInventory() {

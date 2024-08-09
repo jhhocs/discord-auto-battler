@@ -1,10 +1,12 @@
 const ActionResult = require('./ActionResult');
 
 class Entity {
-    constructor(name, gameStats, equippedItems) {
+    constructor(name, gameStats, equippedCards) {
         this.name = name;
         this.gameStats = gameStats;
-        this.equippedItems = equippedItems
+        // this.equippedItems = equippedItems
+        this.equippedCards = equippedCards;
+        this.cardQueue = [];
     }
 
     // targets is an array of entities
@@ -23,21 +25,35 @@ class Entity {
     //     return { damage: damage, target: target, deaths: deaths };
     // }
 
+    drawCard() {
+        if(this.cardQueue.length == 0) {
+            this.cardQueue = shuffle(this.equippedCards.slice());
+            // https://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array
+            // https://stackoverflow.com/questions/7309361/most-efficient-array-shuffler
+        }
+        let card = this.cardQueue.pop();
+        return card;
+    }
+
     attack(target, multiplier = 1, refundedInitiative = 0) {
         this.gameStats.resetInitiative(refundedInitiative);
         let result = new ActionResult(0, null, [], false, 0, 0);
         result.target = target;
-        let damage = Math.floor(Math.random() * 10) + this.gameStats.attack;
-        result.damage = damage;
+        
+        let damage = (Math.floor(Math.random() * 10) + this.gameStats.attack);
+
+        damage = Math.floor(damage * multiplier);
+        
         // let deaths = [];
 
         if(this.gameStats.weak > 0) {
+            result.combatReport += `${this.name} is weakened and deals less damage.\n`;
             damage = Math.floor(damage * 0.65);
             this.gameStats.weak -= 1;
-            result.weak = true;
+            // result.weak = true;
         }
-
-        target.gameStats.currentHealth -= damage * multiplier;
+        target.gameStats.currentHealth -= damage;
+        result.damage = damage;
         // let death = this.checkDeath()
         if(target.checkDeath()) {
             result.deaths.push(target);
@@ -88,6 +104,18 @@ class Entity {
     }
 }
 
+
+// https://www.squash.io/how-to-shuffle-a-javascript-array/#:~:text=Avoid%20modifying%20the%20original%20array,the%20original%20array%20if%20needed.
+
+function shuffle(array){
+    let currentIndex = array.length, randomIndex;
+    while(currentIndex != 0) {
+        randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex--;
+        [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+    }
+    return array;
+}
 
 
 

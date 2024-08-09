@@ -6,6 +6,7 @@ class ActionResult {
         this.weak = weak; // boolean
         this.poison = poison; // int
         this.bleed = bleed; // int
+        this.combatReport = "";
     }
     // constructor() {
     //     this.damage = 0; // int

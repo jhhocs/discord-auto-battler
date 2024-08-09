@@ -1,7 +1,9 @@
 const { EmbedBuilder } = require("discord.js");
 const { PartySchema, PlayerSchema } = require("../schemas/Schemas");
 const { Entity, GameStats, Inventory, Player } = require("../objects/Objects");
-const playerSchema = require("../schemas/player-schema");
+const CardManager = require("./cardManager");
+
+const cardManager = new CardManager();
 
 class BattleManager {
     constructor(battleData, channel, party1, party2) {
@@ -102,7 +104,10 @@ class BattleManager {
         let result;
         if(attacker.partyId === this.party1[0].partyId) {
             let target = this.live2[Math.floor(Math.random() * (this.live2.length))];
-            result = attacker.attack(target);
+            // result = attacker.attack(target);
+            
+            result = cardManager.play(attacker, target);
+            // console.log(result);
             if(result.deaths.length > 0) {
                 const index = this.live2.indexOf(target);
                 this.live2.splice(index, 1);
@@ -110,7 +115,9 @@ class BattleManager {
         }
         else {
             let target = this.live1[Math.floor(Math.random() * (this.live1.length))];
-            result = attacker.attack(target);
+            // result = attacker.attack(target);
+            result = cardManager.play(attacker, target);
+            // console.log(result);
             if(result.deaths.length > 0) {
                 const index = this.live1.indexOf(target);
                 this.live1.splice(index, 1);
@@ -167,16 +174,18 @@ class BattleManager {
         }
         combatStats += "\`\`\`";
 
-        let combatReport = `${attacker.name} attacks ${result.target.name} for ${result.damage} damage.\n`;
+        // let combatReport = `${attacker.name} attacks ${result.target.name} for ${result.damage} damage.\n`;
         for(let entity of result.deaths) {
-            combatReport += `${entity.name} has died.`;
+            result.combatReport += `${entity.name} has died.\n`;
+            // combatReport += `${entity.name} has died.`;
         }
 
         let embed = new EmbedBuilder()
             .setTitle(`${attacker.name} attacks`)
             .setColor(0x0099FF)
-            .setDescription(`${combatReport}`);
+            .setDescription(`${result.combatReport}`);
         this.channel.send({content: combatStats, embeds: [embed]});
+        result.combatReport = "";
     }
 
     displayEntityStats(entity) {
@@ -284,11 +293,11 @@ async function fetchPartyData(partyData, party) {
     try {
         // const partyData = await PartySchema.findOne({partyId: partyId});
         let playerData = await PlayerSchema.findOne({userId: partyData.leader, guildId: partyData.guildId});
-        let player = new Player(playerData.username, new GameStats(playerData.stats), new Inventory(playerData.inventory), playerData.userId, partyData.partyId);
+        let player = new Player(playerData.username, new GameStats(playerData.stats), new Inventory(playerData.inventory).equippedCards, playerData.userId, partyData.partyId);
         party.push(player);
         for(let i = 0; i < partyData.members.legth; i++) {
             let playerData = await PlayerSchema.findOne({userId: partyData.members[i], guildId: partyData.guildId});
-            let player = new Player(playerData.username, new GameStats(playerData.stats), new Inventory(playerData.inventory), playerData.userId, partyData.partyId);
+            let player = new Player(playerData.username, new GameStats(playerData.stats), new Inventory(playerData.inventory).equippedCards, playerData.userId, partyData.partyId);
             party.push(player);
         }
     }
